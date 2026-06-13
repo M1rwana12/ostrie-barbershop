@@ -15,7 +15,7 @@ export default function Booking({ services, barbers }) {
   }
 
   const [picked, setPicked] = useState(() => new Set())
-  const [form, setForm] = useState({ name: '', phone: '', service_id: '', barber_id: '', date: '', time: '' })
+  const [form, setForm] = useState({ name: '', phone: '', service_id: '', barber_id: '', date: '', time: '', website: '' })
   const [errors, setErrors] = useState({})
   const [topError, setTopError] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -112,11 +112,12 @@ export default function Booking({ services, barbers }) {
         barber_id: form.barber_id ? Number(form.barber_id) : null,
         date: form.date,
         time: form.time,
+        website: form.website, // honeypot — справжні користувачі лишають порожнім
       })
       setSuccess(true)
     } catch (err) {
       setTopError(
-        err.status === 409
+        err.status === 409 || err.status === 429
           ? err.message
           : t('booking.errSend', { msg: err.message }),
       )
@@ -199,6 +200,20 @@ export default function Booking({ services, barbers }) {
               </div>
             ) : (
               <form className="form" onSubmit={onSubmit} noValidate>
+                {/* Honeypot: приховане поле-пастка для ботів. Реальні люди його не бачать. */}
+                <div className="hp-field" aria-hidden="true">
+                  <label htmlFor="website">Не заповнюйте це поле</label>
+                  <input
+                    id="website"
+                    type="text"
+                    name="website"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    value={form.website}
+                    onChange={(e) => setField('website', e.target.value)}
+                  />
+                </div>
+
                 {topError && <div className="form-error-top" role="alert">{topError}</div>}
 
                 <div className="form-row">

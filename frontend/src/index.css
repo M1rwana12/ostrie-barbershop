@@ -506,6 +506,12 @@ section { position: relative; }
   .gallery { columns: 1; }
 }
 
+/* Honeypot — приховане поле-пастка (поза екраном, не display:none) */
+.hp-field {
+  position: absolute; left: -9999px; top: auto;
+  width: 1px; height: 1px; overflow: hidden;
+}
+
 /* ─────────────  Перемикач мови UA/EN  ───────────── */
 .lang-toggle { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
 .lang-toggle button {

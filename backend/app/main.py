@@ -1,13 +1,18 @@
 """OSTRIE API — FastAPI застосунок: послуги, майстри, онлайн-запис."""
-from fastapi import Depends, FastAPI, Header, HTTPException
+from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
 from . import models, schemas
 from .config import settings
 from .database import Base, engine, get_db
+from .ratelimit import client_ip, is_rate_limited
 from .seed import seed
 from .telegram import notify_new_appointment
+
+# Анти-спам POST /appointments: не більше N записів з одного IP за вікно
+RATE_LIMIT = 5
+RATE_WINDOW_SECONDS = 600  # 10 хвилин
 
 # Створюємо таблиці та наповнюємо seed-даними при старті
 Base.metadata.create_all(bind=engine)
@@ -57,8 +62,23 @@ def availability(barber_id: int, date: str, db: Session = Depends(get_db)) -> di
     tags=["booking"],
 )
 async def create_appointment(
-    payload: schemas.AppointmentCreate, db: Session = Depends(get_db)
+    payload: schemas.AppointmentCreate, request: Request, db: Session = Depends(get_db)
 ):
+    # Honeypot: бот заповнив приховане поле — імітуємо успіх, нічого не зберігаємо.
+    if payload.website.strip():
+        return models.Appointment(
+            id=0, name=payload.name, phone=payload.phone,
+            service_id=payload.service_id, barber_id=payload.barber_id,
+            date=payload.date, time=payload.time,
+        )
+
+    # Rate-limit за IP (анти-спам/анти-флуд)
+    if is_rate_limited(client_ip(request), RATE_LIMIT, RATE_WINDOW_SECONDS):
+        raise HTTPException(
+            status_code=429,
+            detail="Забагато спроб. Зачекайте кілька хвилин і спробуйте ще раз.",
+        )
+
     service = db.get(models.Service, payload.service_id)
     if service is None:
         raise HTTPException(status_code=404, detail="Послугу не знайдено")
@@ -85,7 +105,7 @@ async def create_appointment(
                 detail="Цей час уже зайнятий. Оберіть, будь ласка, інший слот.",
             )
 
-    appt = models.Appointment(**payload.model_dump())
+    appt = models.Appointment(**payload.model_dump(exclude={"website"}))
     db.add(appt)
     db.commit()
     db.refresh(appt)

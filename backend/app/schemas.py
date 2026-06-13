@@ -30,6 +30,9 @@ class AppointmentCreate(BaseModel):
     barber_id: int | None = None
     date: str
     time: str
+    # Honeypot: справжні користувачі це поле не бачать і лишають порожнім.
+    # Якщо заповнене — запит від бота (обробляється в main.py).
+    website: str = ""
 
     @field_validator("name")
     @classmethod
