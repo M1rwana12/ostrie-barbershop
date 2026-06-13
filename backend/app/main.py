@@ -6,7 +6,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
 from . import models, schemas
-from .auth import create_access_token, hash_password, require_role, verify_password
+from .auth import (
+    create_access_token,
+    hash_password,
+    make_totp_secret,
+    qr_svg,
+    require_role,
+    totp_uri,
+    verify_password,
+    verify_totp,
+)
 from .config import settings
 from .database import Base, engine, get_db
 from .migrate import run_migrations
@@ -169,6 +178,15 @@ def login(payload: schemas.LoginIn, db: Session = Depends(get_db)):
     user = db.query(models.User).filter_by(email=email).first()
     if user is None or not verify_password(payload.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Невірний email або пароль")
+
+    # Другий фактор, якщо увімкнений у користувача
+    if user.totp_enabled:
+        if not payload.totp_code:
+            # сигнал фронту показати поле коду (детальом, не текстом помилки)
+            raise HTTPException(status_code=401, detail="2fa_required")
+        if not verify_totp(user.totp_secret or "", payload.totp_code):
+            raise HTTPException(status_code=401, detail="Невірний код підтвердження")
+
     return schemas.TokenOut(
         access_token=create_access_token(user), email=user.email, role=user.role
     )
@@ -177,6 +195,63 @@ def login(payload: schemas.LoginIn, db: Session = Depends(get_db)):
 @app.get("/auth/me", response_model=schemas.UserOut, tags=["auth"])
 def me(user: models.User = Depends(require_role(*models.ROLES))):
     return user
+
+
+@app.post("/auth/change-password", tags=["auth"])
+def change_password(
+    payload: schemas.ChangePassword,
+    db: Session = Depends(get_db),
+    user: models.User = Depends(require_role(*models.ROLES)),
+) -> dict:
+    if not verify_password(payload.current_password, user.password_hash):
+        raise HTTPException(status_code=400, detail="Невірний поточний пароль")
+    user.password_hash = hash_password(payload.new_password)
+    db.commit()
+    return {"ok": True}
+
+
+# ── Двофакторна автентифікація (TOTP) ──
+@app.post("/auth/2fa/setup", tags=["auth"])
+def twofa_setup(
+    db: Session = Depends(get_db),
+    user: models.User = Depends(require_role(*models.ROLES)),
+) -> dict:
+    """Генерує секрет (поки не активуючи 2FA) і повертає QR + otpauth-URI."""
+    secret = make_totp_secret()
+    user.totp_secret = secret
+    user.totp_enabled = False
+    db.commit()
+    uri = totp_uri(secret, user.email)
+    return {"secret": secret, "otpauth_uri": uri, "qr_svg": qr_svg(uri)}
+
+
+@app.post("/auth/2fa/enable", tags=["auth"])
+def twofa_enable(
+    payload: schemas.TwoFACode,
+    db: Session = Depends(get_db),
+    user: models.User = Depends(require_role(*models.ROLES)),
+) -> dict:
+    if not user.totp_secret:
+        raise HTTPException(status_code=400, detail="Спочатку згенеруйте секрет (setup)")
+    if not verify_totp(user.totp_secret, payload.code):
+        raise HTTPException(status_code=400, detail="Невірний код підтвердження")
+    user.totp_enabled = True
+    db.commit()
+    return {"ok": True, "totp_enabled": True}
+
+
+@app.post("/auth/2fa/disable", tags=["auth"])
+def twofa_disable(
+    payload: schemas.TwoFACode,
+    db: Session = Depends(get_db),
+    user: models.User = Depends(require_role(*models.ROLES)),
+) -> dict:
+    if user.totp_enabled and not verify_totp(user.totp_secret or "", payload.code):
+        raise HTTPException(status_code=400, detail="Невірний код підтвердження")
+    user.totp_enabled = False
+    user.totp_secret = None
+    db.commit()
+    return {"ok": True, "totp_enabled": False}
 
 
 # ─────────────  Користувачі (тільки super_admin)  ─────────────

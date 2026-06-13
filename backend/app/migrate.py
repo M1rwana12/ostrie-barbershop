@@ -25,3 +25,14 @@ def run_migrations() -> None:
             conn.execute(text(
                 "UPDATE appointments SET status = 'new' WHERE status IS NULL"
             ))
+
+    # users.totp_* — додано разом з двофакторною автентифікацією
+    if not _has_column("users", "totp_secret"):
+        with engine.begin() as conn:
+            conn.execute(text("ALTER TABLE users ADD COLUMN totp_secret VARCHAR(64)"))
+    if not _has_column("users", "totp_enabled"):
+        default = "FALSE" if engine.dialect.name == "postgresql" else "0"
+        with engine.begin() as conn:
+            conn.execute(text(
+                f"ALTER TABLE users ADD COLUMN totp_enabled BOOLEAN DEFAULT {default}"
+            ))

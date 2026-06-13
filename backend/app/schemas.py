@@ -101,6 +101,7 @@ EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 class LoginIn(BaseModel):
     email: str
     password: str
+    totp_code: str | None = None
 
 
 class TokenOut(BaseModel):
@@ -115,7 +116,17 @@ class UserOut(BaseModel):
     id: int
     email: str
     role: str
+    totp_enabled: bool = False
     created_at: str | None = None
+
+
+class ChangePassword(BaseModel):
+    current_password: str
+    new_password: str = Field(min_length=6, max_length=128)
+
+
+class TwoFACode(BaseModel):
+    code: str = Field(min_length=6, max_length=10)
 
 
 class UserCreate(BaseModel):

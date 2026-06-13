@@ -5,6 +5,7 @@ import Logo from './Logo'
 import AdminBookings from './AdminBookings'
 import AdminAnalytics from './AdminAnalytics'
 import AdminUsers from './AdminUsers'
+import AdminSecurity from './AdminSecurity'
 
 export default function Admin() {
   const { t } = useI18n()
@@ -15,6 +16,8 @@ export default function Admin() {
   // login form
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [need2fa, setNeed2fa] = useState(false)
+  const [totpCode, setTotpCode] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
@@ -34,12 +37,20 @@ export default function Admin() {
     setError('')
     setBusy(true)
     try {
-      const res = await login(email.trim().toLowerCase(), password)
+      const res = await login(email.trim().toLowerCase(), password, need2fa ? totpCode : undefined)
       setToken(res.access_token)
       setUser({ email: res.email, role: res.role })
-      setPassword('')
+      setPassword(''); setTotpCode(''); setNeed2fa(false)
     } catch (err) {
-      setError(err.status === 401 ? t('admin.errCreds') : err.message)
+      if (err.message === '2fa_required') {
+        // правильні логін+пароль, але потрібен код 2FA
+        setNeed2fa(true)
+        setError('')
+      } else if (err.status === 401 && need2fa) {
+        setError(t('admin.errCreds')) // невірний код
+      } else {
+        setError(err.status === 401 ? t('admin.errCreds') : err.message)
+      }
     } finally {
       setBusy(false)
     }
@@ -49,6 +60,8 @@ export default function Admin() {
     clearToken()
     setUser(null)
     setEmail('')
+    setNeed2fa(false)
+    setTotpCode('')
     setTab('bookings')
   }
 
@@ -95,7 +108,15 @@ export default function Admin() {
               <input id="admin-pass" type="password" autoComplete="current-password"
                 value={password} onChange={(e) => setPassword(e.target.value)} />
             </div>
-            <button type="submit" className="btn" disabled={busy || !email.trim() || !password}>
+            {need2fa && (
+              <div className="field">
+                <label htmlFor="admin-2fa">{t('admin.loginCode')}</label>
+                <input id="admin-2fa" type="text" inputMode="numeric" autoComplete="one-time-code" autoFocus
+                  placeholder="000000" value={totpCode} onChange={(e) => setTotpCode(e.target.value)} />
+                <span className="msg" style={{ color: 'var(--ink-dim)' }}>{t('admin.login2faHint')}</span>
+              </div>
+            )}
+            <button type="submit" className="btn" disabled={busy || !email.trim() || !password || (need2fa && totpCode.length < 6)}>
               {busy ? t('admin.checking') : t('admin.enter')} <span className="arrow">↗</span>
             </button>
           </form>
@@ -115,11 +136,15 @@ export default function Admin() {
                   {t('admin.tabUsers')}
                 </button>
               )}
+              <button className={tab === 'security' ? 'active' : ''} onClick={() => setTab('security')}>
+                {t('admin.tabSecurity')}
+              </button>
             </nav>
 
             {tab === 'bookings' && <AdminBookings canEdit={isSuper || user.role === 'admin'} onUnauthorized={logout} />}
             {tab === 'analytics' && isSuper && <AdminAnalytics onUnauthorized={logout} />}
             {tab === 'users' && isSuper && <AdminUsers currentEmail={user.email} onUnauthorized={logout} />}
+            {tab === 'security' && <AdminSecurity onUnauthorized={logout} />}
           </>
         )}
       </div>

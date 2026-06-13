@@ -1,8 +1,12 @@
-"""Автентифікація: bcrypt-паролі, JWT-токени та залежності ролей."""
+"""Автентифікація: bcrypt-паролі, JWT-токени, TOTP-2FA та залежності ролей."""
+import io
 from datetime import datetime, timedelta, timezone
 
 import bcrypt
 import jwt
+import pyotp
+import qrcode
+import qrcode.image.svg
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
@@ -12,6 +16,8 @@ from .config import settings
 from .database import get_db
 
 _bearer = HTTPBearer(auto_error=False)
+
+ISSUER = "OSTRIE"
 
 
 # ── Паролі ──
@@ -41,6 +47,30 @@ def create_access_token(user: "models.User") -> str:
 
 def _decode(token: str) -> dict:
     return jwt.decode(token, settings.jwt_secret, algorithms=[settings.jwt_algorithm])
+
+
+# ── TOTP (двофакторна автентифікація) ──
+def make_totp_secret() -> str:
+    return pyotp.random_base32()
+
+
+def totp_uri(secret: str, email: str) -> str:
+    return pyotp.TOTP(secret).provisioning_uri(name=email, issuer_name=ISSUER)
+
+
+def verify_totp(secret: str, code: str) -> bool:
+    if not secret or not code:
+        return False
+    # valid_window=1 — приймаємо сусідні 30-секундні вікна (компенсація розсинхрону годинника)
+    return pyotp.TOTP(secret).verify(code.strip().replace(" ", ""), valid_window=1)
+
+
+def qr_svg(uri: str) -> str:
+    """SVG-QR без PIL (SvgPathImage не потребує Pillow)."""
+    img = qrcode.make(uri, image_factory=qrcode.image.svg.SvgPathImage)
+    buf = io.BytesIO()
+    img.save(buf)
+    return buf.getvalue().decode()
 
 
 # ── Залежності ──

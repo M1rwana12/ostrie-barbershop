@@ -544,9 +544,18 @@ section { position: relative; }
 .admin-brand:hover .logo-mark { transform: rotate(90deg); }
 .admin-actions { display: flex; gap: 0.6rem; }
 .admin-body { padding-top: clamp(2rem, 6vw, 4rem); padding-bottom: 5rem; flex: 1; }
-.admin-login { max-width: 460px; margin: clamp(2rem, 8vw, 6rem) auto 0; }
+.admin-login {
+  max-width: 440px; margin: clamp(2rem, 8vw, 6rem) auto 0;
+  border: 1px solid var(--line); border-radius: 8px;
+  background: linear-gradient(180deg, var(--bg-2), var(--bg));
+  padding: clamp(1.6rem, 4vw, 2.6rem);
+  box-shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.7);
+}
 .admin-login .kicker { margin-bottom: 1rem; }
-.admin-login p { color: var(--ink-dim); margin: 0.6rem 0 1.6rem; }
+.admin-login .display { font-size: clamp(2.4rem, 6vw, 3.2rem); }
+.admin-login p { color: var(--ink-dim); margin: 0.6rem 0 1.6rem; font-size: 0.92rem; }
+.admin-login .field + .field { margin-top: 1rem; }
+.admin-login .btn { margin-top: 1.4rem; width: 100%; justify-content: center; }
 .admin-head { margin-bottom: 2rem; }
 .admin-head .kicker { margin-bottom: 0.8rem; }
 .admin-count {
@@ -625,3 +634,25 @@ section { position: relative; }
 .user-form { margin-bottom: 1rem; }
 .link-danger { background: none; border: none; cursor: pointer; color: #e08a8a; font-weight: 700; font-size: 0.85rem; padding: 0; }
 .link-danger:hover { text-decoration: underline; }
+
+/* Безпека / 2FA */
+.form-ok {
+  background: color-mix(in srgb, #2f7d4f 18%, var(--bg)); border: 1px solid #2f7d4f;
+  color: #8fe0ad; border-radius: 4px; padding: 0.7rem 1rem; margin-bottom: 1.2rem; font-size: 0.9rem;
+}
+.sec-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.6rem; align-items: start; }
+.sec-card { border: 1px solid var(--line); border-radius: 8px; background: var(--bg-2); padding: clamp(1.3rem, 3vw, 2rem); }
+.sec-card .an-h { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.8rem; }
+.twofa-state { font-family: 'Manrope', sans-serif; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; border-radius: 999px; padding: 0.2em 0.7em; }
+.twofa-state.on { background: color-mix(in srgb, #2f7d4f 22%, transparent); color: #8fe0ad; border: 1px solid #2f7d4f; }
+.twofa-state.off { background: var(--bg-3); color: var(--ink-dim); border: 1px solid var(--line); }
+.twofa-setup .qr {
+  width: 196px; height: 196px; background: #fff; border-radius: 8px; padding: 10px;
+  margin: 1rem 0 0.8rem; display: flex;
+}
+.twofa-setup .qr svg { width: 100%; height: 100%; display: block; }
+.twofa-secret {
+  display: inline-block; font-family: 'Manrope', monospace; font-size: 0.82rem; letter-spacing: 0.08em;
+  background: var(--bg-3); border: 1px solid var(--line); border-radius: 4px; padding: 0.5em 0.8em;
+  color: var(--accent-hi); word-break: break-all; margin-bottom: 1rem;
+}

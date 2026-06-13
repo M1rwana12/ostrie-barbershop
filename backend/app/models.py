@@ -62,6 +62,8 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(160), unique=True, index=True)
     password_hash: Mapped[str] = mapped_column(String(200))
     role: Mapped[str] = mapped_column(String(20), default=ROLE_ADMIN)  # super_admin/admin/barber
+    totp_secret: Mapped[str | None] = mapped_column(String(64), nullable=True, default=None)
+    totp_enabled: Mapped[bool] = mapped_column(default=False)
     created_at: Mapped[str] = mapped_column(
         String(40), default=lambda: datetime.now(timezone.utc).isoformat()
     )

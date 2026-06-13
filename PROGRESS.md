@@ -209,14 +209,35 @@
 - [x] `render.yaml`: `JWT_SECRET` (generateValue), `SUPER_ADMIN_EMAIL/PASSWORD` (sync:false).
 - Вхід: `…/#/admin` → email+пароль супер-адміна (з Render env).
 
+## БЕЗПЕКА: ЗМІНА ПАРОЛЯ + 2FA (TOTP) — 2026-06-14
+- [x] **Супер-адмін сидиться з зашитих даних**: email `senja3209@icloud.com`, пароль —
+  зберігається як bcrypt-ХЕШ у `config.super_admin_password_hash` (плейн лише у юзера).
+  Сид бере хеш, якщо заданий. Перевірено: логін на проді 200 (super_admin).
+- [x] **Зміна пароля**: `POST /auth/change-password` (поточний+новий, будь-яка роль).
+  Фронт — вкладка «Безпека» (доступна всім ролям), форма + тост успіху.
+- [x] **2FA (TOTP)**: `pyotp`+`qrcode` (SVG без PIL). User-колонки `totp_secret`,
+  `totp_enabled` (+міграція ALTER, dialect-aware boolean). Ендпоінти `2fa/setup`
+  (секрет+QR+otpauth), `2fa/enable` (код), `2fa/disable` (код). Логін: якщо `totp_enabled`
+  і немає коду → 401 `detail="2fa_required"` (фронт показує поле коду), невірний код → 401.
+  `UserOut.totp_enabled`. Фронт `AdminSecurity.jsx`: setup з QR (dangerouslySetInnerHTML),
+  ввід коду, увімк/вимк. Логін `Admin.jsx` обробляє `2fa_required`.
+- [x] Перевірено локально end-to-end: зміна пароля (400/200, старий не діє), 2FA setup→enable
+  (400 на невірний код)→login(2fa_required→bad→ok)→disable→login без коду. Усе ок.
+- [x] **Дизайн адмінки покращено**: картка логіна (рамка/градієнт/тінь), вкладки, картки
+  безпеки `.sec-card`, QR-блок на білому, бейдж стану 2FA, `.form-ok` тост. Білд OK (53 модулі).
+- ⚠️ **Postgres ще не під'єднано** → зміна пароля та 2FA-секрет зберігаються лише до
+  наступного редеплою (ефемерна SQLite пересідиться). ПОТРІБЕН Blueprint Sync у Render.
+
 ## ЗАПЛАНОВАНО / TODO
+- [ ] **Postgres Blueprint Sync у Render** (ручний крок користувача) — блокує персистентність
+  пароля/2FA/записів. render.yaml готовий (databases: ostrie-db).
 - [ ] Підтвердити/замінити стокові фото та hero-відео на власні (сюжет ↔ підпис).
 - [ ] Звірити реальні соц-акаунти, телефон, адресу, координати карти.
 - [ ] PWA (manifest + service worker), офлайн-кеш статичних ассетів.
 - [ ] Тости/нотифікації замість inline-повідомлень; skeleton-loaders.
-- [ ] Зміна власного пароля / скидання (зараз super-admin пароль лише через перший seed).
-- [ ] Аудит-лог дій (міні-SOC) — наступний крок безпеки після авторизації.
-- [ ] (Опц.) i18n контенту з БД та meta/JSON-LD (потребує бекенд-перекладів).
+- [ ] Аудит-лог дій (міні-SOC) — наступний крок безпеки.
+- [ ] Backup-коди для 2FA; rate-limit на /auth/login.
+- [ ] (Опц.) i18n контенту з БД та meta/JSON-LD.
 - [ ] PWA (manifest + service worker), офлайн-кеш статичних ассетів.
 - [ ] Тости/нотифікації замість inline-повідомлень; skeleton-loaders.
 - [ ] Rate-limit на POST /appointments (анти-спам), honeypot у формі.

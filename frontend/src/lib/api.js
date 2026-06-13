@@ -76,9 +76,21 @@ const authHeaders = () => {
 const auth = (path, options = {}) =>
   request(path, { ...options, headers: { ...authHeaders(), ...(options.headers || {}) } })
 
-export const login = (email, password) =>
-  request('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) })
+export const login = (email, password, totpCode) =>
+  request('/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({ email, password, ...(totpCode ? { totp_code: totpCode } : {}) }),
+  })
 export const getMe = () => auth('/auth/me')
+
+// ── Безпека: пароль і 2FA ──
+export const changePassword = (current_password, new_password) =>
+  auth('/auth/change-password', { method: 'POST', body: JSON.stringify({ current_password, new_password }) })
+export const twofaSetup = () => auth('/auth/2fa/setup', { method: 'POST' })
+export const twofaEnable = (code) =>
+  auth('/auth/2fa/enable', { method: 'POST', body: JSON.stringify({ code }) })
+export const twofaDisable = (code) =>
+  auth('/auth/2fa/disable', { method: 'POST', body: JSON.stringify({ code }) })
 
 // ── Адмін: записи ──
 export const getAppointments = () => auth('/appointments')
