@@ -2,6 +2,13 @@
 
 Спільна пам'ять проєкту. Читати на початку кожної сесії.
 
+> **РІШЕННЯ ЗМІНЕНО: 2026-06-13** — перехід від single-file сайту до **full-stack**
+> архітектури: `/frontend` (React + Vite + Tailwind, компонентна структура) +
+> `/backend` (FastAPI + SQLite + SQLAlchemy) з REST API та Telegram-сповіщеннями.
+> Причина: потрібна робоча система онлайн-запису (динамічні дані, валідація на сервері,
+> перевірка зайнятості слота, сповіщення майстру). Дизайн/палітра/шрифти/бренд — збережено.
+> Старий single-file `index.html` видалено з кореня (історія лишилась у git).
+
 ---
 
 ## КЛЮЧОВІ РІШЕННЯ
@@ -66,16 +73,40 @@
   кнопка «Записатись з цим образом» підставляє вибір у `<select>` форми й скролить до неї.
 Всі ефекти поважають `prefers-reduced-motion` та вимикаються на тач-пристроях, де доречно.
 
+## FULL-STACK (React + FastAPI) — 2026-06-13
+### Backend `/backend` (FastAPI + SQLAlchemy 2 + SQLite)
+- [x] Структура: `app/{config,database,models,schemas,seed,telegram,main}.py`.
+- [x] Моделі: Service, Barber, Appointment. Seed послуг і майстрів при старті.
+- [x] Ендпоінти: `GET /services`, `GET /barbers`, `POST /appointments`, `GET /appointments`
+  (адмін, заголовок `X-Admin-Token`).
+- [x] Pydantic-валідація (ім'я, телефон, дата у майбутньому, формат часу).
+- [x] Перевірка зайнятості слота (майстер+дата+час) → 409 Conflict.
+- [x] Async Telegram-сповіщення майстру (httpx), токен/chat_id з `.env`; не валить запит при збої.
+- [x] CORS з `.env` (dev: localhost:5173). `.env.example` наданий.
+
+### Frontend `/frontend` (React + Vite + Tailwind)
+- [x] Токени бренду в `tailwind.config.js` + повна дизайн-система в `src/index.css`.
+- [x] Компоненти: Nav, Hero, Marquee, Services, Barbers, Gallery, About, Reviews, Booking, Footer,
+  Preloader, Cursor. Хук `useSignatureEffects` (reveal, прогрес, курсор, магніт, до/після).
+- [x] Services/Barbers тягнуться з API (стани loading/error).
+- [x] Booking: конструктор образу + форма з валідацією → `POST /appointments`,
+  обробка 409, екран успіху.
+- [x] `src/lib/api.js` — клієнт REST (VITE_API_URL з `.env`).
+- [x] README з інструкціями запуску обох частин і налаштування Telegram.
+
 ## ЗАПЛАНОВАНО / TODO
 - [ ] Замінити плейсхолдери на реальні фото (hero, майстри, галерея).
 - [ ] Підключити справжній Google Maps iframe у `.map-strip`.
-- [ ] Підключити форму до бекенду / Telegram-боту / CRM (зараз submit лише локальний).
 - [ ] Реальні соц-посилання та номер телефону.
 - [ ] OG-зображення для шерингу, favicon.
-- [ ] (Опц.) lazy-load зображень, мінікешування шрифтів.
+- [ ] Адмін-панель для перегляду записів (зараз лише `GET /appointments` з токеном).
+- [ ] Деплой: фронт (Pages/Vercel) + бекенд (Render/Fly), Postgres, домен у CORS.
+- [ ] (Опц.) контроль доступних слотів по майстру/даті на фронті (підсвічувати зайняте).
 
 ---
 
 ## ЛОГ РІШЕНЬ
 - 2026-06-13 — Старт. Обрано стек (vanilla single-file), стиль (dark brutalism premium),
   палітру (charcoal + burnt brass), шрифти (Anton + Manrope), тег-лайн («На вістрі стилю»).
+- 2026-06-13 — РІШЕННЯ ЗМІНЕНО: single-file → full-stack (React+Vite+Tailwind / FastAPI+SQLite).
+  Бренд і візуальна мова збережені; додано робочий онлайн-запис + Telegram-сповіщення.
