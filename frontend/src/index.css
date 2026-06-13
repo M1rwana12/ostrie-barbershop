@@ -419,6 +419,54 @@ section { position: relative; }
 }
 
 /* ============================================================
+   Real media — hero photo, portraits, gallery, before/after, map
+   ============================================================ */
+.hero-media { position: absolute; inset: 0; z-index: 0; overflow: hidden; background: #0a0a0b; }
+.hero-photo {
+  width: 100%; height: 100%; object-fit: cover;
+  filter: grayscale(0.25) contrast(1.05) brightness(0.62);
+  transform: scale(1.1);
+  animation: kenburns 24s var(--ease) infinite alternate;
+}
+@keyframes kenburns {
+  from { transform: scale(1.1) translate(0, 0); }
+  to { transform: scale(1.2) translate(-2.5%, -2%); }
+}
+.hero-scrim {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(120% 90% at 78% 18%, rgba(201,116,45,.18), transparent 55%),
+    linear-gradient(180deg, rgba(8,8,9,.45), rgba(8,8,9,.82)),
+    radial-gradient(140% 120% at 30% 30%, transparent 28%, rgba(8,8,9,.72) 100%);
+}
+
+.master-portrait {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+  filter: grayscale(1) contrast(1.05) brightness(0.9);
+  transition: filter 0.6s var(--ease), transform 0.7s var(--ease);
+}
+.master:hover .master-portrait { filter: grayscale(0) contrast(1.05); transform: scale(1.05); }
+
+.gallery figure img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+  filter: grayscale(0.45) contrast(1.03);
+  transition: filter 0.55s var(--ease), transform 0.6s var(--ease);
+}
+.gallery figure:hover img { filter: grayscale(0); transform: scale(1.05); }
+.g-tall img { aspect-ratio: 3/4; }
+.g-sq img { aspect-ratio: 1/1; }
+.g-wide img { aspect-ratio: 4/3; }
+
+.ba-layer { background-size: cover; background-position: center; }
+.ba-after { filter: contrast(1.05); }
+.ba-before { filter: grayscale(0.7) brightness(0.82); }
+
+.map-frame {
+  width: 100%; height: 100%; border: 0; display: block;
+  filter: invert(0.9) hue-rotate(180deg) grayscale(0.35) contrast(0.9) brightness(0.95);
+}
+
+/* ============================================================
    Responsive
    ============================================================ */
 @media (max-width: 1024px) {

@@ -1,3 +1,5 @@
+import { MASTERS } from '../lib/images'
+
 const expWord = (n) => {
   const last = n % 10
   const tens = n % 100
@@ -30,7 +32,7 @@ export default function Barbers({ barbers, loading, error }) {
             {barbers.map((b, i) => (
               <article className="master" data-reveal data-delay={String((i % 4) + 1)} key={b.id}>
                 <div className="master-photo">
-                  <span className="ph">ФОТО МАЙСТРА<br />портрет, ч/б,<br />3:4</span>
+                  <img className="master-portrait" src={MASTERS[i % MASTERS.length]} alt={`Майстер ${b.name}`} loading="lazy" />
                 </div>
                 <div className="master-body">
                   <span className="role">{b.role}</span>

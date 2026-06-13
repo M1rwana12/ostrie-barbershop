@@ -1,14 +1,7 @@
-const ITEMS = [
-  ['g-tall', 'фейд + борода', '3:4', 'Фейд + борода'],
-  ['g-sq', 'класична стрижка', '1:1', 'Класика'],
-  ['g-wide', 'ДО / ПІСЛЯ — трансформація', '4:3', 'До / Після'],
-  ['g-sq', 'текстурний кроп', '1:1', 'Текстурний кроп'],
-  ['g-tall', 'королівське гоління', '3:4', 'Гоління'],
-  ['g-wide', 'андеркат', '4:3', 'Андеркат'],
-  ['g-sq', 'оформлення бороди', '1:1', 'Борода'],
-  ['g-tall', 'помпадур', '3:4', 'Помпадур'],
-  ['g-wide', 'ДО / ПІСЛЯ — камуфляж сивини', '4:3', 'Камуфляж сивини'],
-]
+import { GALLERY, BEFORE, AFTER } from '../lib/images'
+
+const CLASSES = ['g-tall', 'g-sq', 'g-wide', 'g-sq', 'g-tall', 'g-wide', 'g-sq', 'g-tall', 'g-wide']
+const CAPTIONS = ['Фейд + борода', 'Класика', 'До / Після', 'Текстурний кроп', 'Гоління', 'Андеркат', 'Борода', 'Помпадур', 'Камуфляж сивини']
 
 export default function Gallery() {
   return (
@@ -27,13 +20,11 @@ export default function Gallery() {
         <div className="ba-wrap" data-reveal>
           <span className="ba-label">Трансформація — потягни лезо</span>
           <div className="ba">
-            <div className="ba-layer ba-after">
+            <div className="ba-layer ba-after" style={{ backgroundImage: `url(${AFTER})` }}>
               <span className="ba-tag">Після</span>
-              <span className="ba-ph">ФОТО «ПІСЛЯ»<br />чистий фейд + оформлена борода<br />16:10</span>
             </div>
-            <div className="ba-layer ba-before">
+            <div className="ba-layer ba-before" style={{ backgroundImage: `url(${BEFORE})` }}>
               <span className="ba-tag">До</span>
-              <span className="ba-ph">ФОТО «ДО»<br />відрослий образ<br />16:10</span>
             </div>
             <div
               className="ba-handle"
@@ -55,10 +46,10 @@ export default function Gallery() {
         </div>
 
         <div className="gallery" data-reveal>
-          {ITEMS.map(([cls, ph, ratio, cap], i) => (
-            <figure className={cls} key={i}>
-              <div className="ph">ФОТО РОБОТИ<br />{ph}<br />{ratio}</div>
-              <figcaption>{cap}</figcaption>
+          {GALLERY.map((src, i) => (
+            <figure className={CLASSES[i]} key={i}>
+              <img src={src} alt={CAPTIONS[i]} loading="lazy" />
+              <figcaption>{CAPTIONS[i]}</figcaption>
             </figure>
           ))}
         </div>

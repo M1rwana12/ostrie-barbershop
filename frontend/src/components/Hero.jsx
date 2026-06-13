@@ -1,7 +1,12 @@
+import { HERO } from '../lib/images'
+
 export default function Hero() {
   return (
     <section className="hero" aria-label="OSTRIE барбершоп" id="top">
-      <div className="hero-bg" role="img" aria-label="Атмосферне фото барбершопу OSTRIE (плейсхолдер)" />
+      <div className="hero-media" aria-hidden="true">
+        <img className="hero-photo" src={HERO} alt="" fetchpriority="high" />
+        <div className="hero-scrim" />
+      </div>
       <div className="hero-grid-lines" aria-hidden="true" />
 
       <div className="wrap hero-inner">
