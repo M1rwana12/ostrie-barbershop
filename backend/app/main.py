@@ -5,7 +5,7 @@ from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
-from . import models, schemas
+from . import audit, models, schemas
 from .auth import (
     consume_backup_code,
     create_access_token,
@@ -166,8 +166,9 @@ def list_appointments(
 def update_status(
     appt_id: int,
     payload: schemas.StatusUpdate,
+    request: Request,
     db: Session = Depends(get_db),
-    _user: models.User = Depends(require_role(ROLE_SUPER, ROLE_ADMIN)),
+    user: models.User = Depends(require_role(ROLE_SUPER, ROLE_ADMIN)),
 ):
     appt = db.get(models.Appointment, appt_id)
     if appt is None:
@@ -175,22 +176,28 @@ def update_status(
     appt.status = payload.status
     db.commit()
     db.refresh(appt)
+    audit.record(db, "appointment_status_changed", request=request, email=user.email,
+                 detail=f"#{appt_id} → {payload.status}")
     return appt
 
 
 # ─────────────  Авторизація  ─────────────
 @app.post("/auth/login", response_model=schemas.TokenOut, tags=["auth"])
 def login(payload: schemas.LoginIn, request: Request, db: Session = Depends(get_db)):
+    email = payload.email.strip().lower()
+
     # Анти-брутфорс за IP
     if is_rate_limited(f"login:{client_ip(request)}", LOGIN_RATE_LIMIT, LOGIN_WINDOW_SECONDS):
+        audit.record(db, "login_ratelimited", request=request, email=email, success=False)
         raise HTTPException(
             status_code=429,
             detail="Забагато спроб входу. Зачекайте кілька хвилин.",
         )
 
-    email = payload.email.strip().lower()
     user = db.query(models.User).filter_by(email=email).first()
     if user is None or not verify_password(payload.password, user.password_hash):
+        audit.record(db, "login_failed", request=request, email=email, success=False,
+                     detail="невірний пароль або email")
         raise HTTPException(status_code=401, detail="Невірний email або пароль")
 
     # Другий фактор, якщо увімкнений у користувача
@@ -202,8 +209,11 @@ def login(payload: schemas.LoginIn, request: Request, db: Session = Depends(get_
             user, payload.totp_code, db
         )
         if not code_ok:
+            audit.record(db, "login_failed", request=request, email=email, success=False,
+                         detail="невірний код 2FA")
             raise HTTPException(status_code=401, detail="Невірний код підтвердження")
 
+    audit.record(db, "login_success", request=request, email=user.email)
     return schemas.TokenOut(
         access_token=create_access_token(user), email=user.email, role=user.role
     )
@@ -217,6 +227,7 @@ def me(user: models.User = Depends(require_role(*models.ROLES))):
 @app.post("/auth/change-password", tags=["auth"])
 def change_password(
     payload: schemas.ChangePassword,
+    request: Request,
     db: Session = Depends(get_db),
     user: models.User = Depends(require_role(*models.ROLES)),
 ) -> dict:
@@ -224,6 +235,7 @@ def change_password(
         raise HTTPException(status_code=400, detail="Невірний поточний пароль")
     user.password_hash = hash_password(payload.new_password)
     db.commit()
+    audit.record(db, "password_changed", request=request, email=user.email)
     return {"ok": True}
 
 
@@ -245,6 +257,7 @@ def twofa_setup(
 @app.post("/auth/2fa/enable", tags=["auth"])
 def twofa_enable(
     payload: schemas.TwoFACode,
+    request: Request,
     db: Session = Depends(get_db),
     user: models.User = Depends(require_role(*models.ROLES)),
 ) -> dict:
@@ -257,12 +270,14 @@ def twofa_enable(
     codes = generate_backup_codes()
     user.backup_codes = hash_backup_codes(codes)
     db.commit()
+    audit.record(db, "2fa_enabled", request=request, email=user.email)
     return {"ok": True, "totp_enabled": True, "backup_codes": codes}
 
 
 @app.post("/auth/2fa/disable", tags=["auth"])
 def twofa_disable(
     payload: schemas.TwoFACode,
+    request: Request,
     db: Session = Depends(get_db),
     user: models.User = Depends(require_role(*models.ROLES)),
 ) -> dict:
@@ -275,12 +290,14 @@ def twofa_disable(
     user.totp_secret = None
     user.backup_codes = None
     db.commit()
+    audit.record(db, "2fa_disabled", request=request, email=user.email)
     return {"ok": True, "totp_enabled": False}
 
 
 @app.post("/auth/2fa/backup-codes", tags=["auth"])
 def twofa_regenerate_backup(
     payload: schemas.TwoFACode,
+    request: Request,
     db: Session = Depends(get_db),
     user: models.User = Depends(require_role(*models.ROLES)),
 ) -> dict:
@@ -292,6 +309,7 @@ def twofa_regenerate_backup(
     codes = generate_backup_codes()
     user.backup_codes = hash_backup_codes(codes)
     db.commit()
+    audit.record(db, "2fa_backup_regenerated", request=request, email=user.email)
     return {"backup_codes": codes}
 
 
@@ -307,8 +325,9 @@ def list_users(
 @app.post("/users", response_model=schemas.UserOut, status_code=201, tags=["admin"])
 def create_user(
     payload: schemas.UserCreate,
+    request: Request,
     db: Session = Depends(get_db),
-    _user: models.User = Depends(require_role(ROLE_SUPER)),
+    current: models.User = Depends(require_role(ROLE_SUPER)),
 ):
     if db.query(models.User).filter_by(email=payload.email).first() is not None:
         raise HTTPException(status_code=409, detail="Користувач з таким email уже існує")
@@ -320,12 +339,15 @@ def create_user(
     db.add(user)
     db.commit()
     db.refresh(user)
+    audit.record(db, "user_created", request=request, email=current.email,
+                 detail=f"{user.email} ({user.role})")
     return user
 
 
 @app.delete("/users/{user_id}", status_code=204, tags=["admin"])
 def delete_user(
     user_id: int,
+    request: Request,
     db: Session = Depends(get_db),
     current: models.User = Depends(require_role(ROLE_SUPER)),
 ):
@@ -334,8 +356,24 @@ def delete_user(
     user = db.get(models.User, user_id)
     if user is None:
         raise HTTPException(status_code=404, detail="Користувача не знайдено")
+    deleted_email = user.email
     db.delete(user)
     db.commit()
+    audit.record(db, "user_deleted", request=request, email=current.email, detail=deleted_email)
+
+
+# ─────────────  Журнал аудиту (тільки super_admin)  ─────────────
+@app.get("/audit", response_model=list[schemas.AuditOut], tags=["admin"])
+def list_audit(
+    action: str | None = None,
+    limit: int = 200,
+    db: Session = Depends(get_db),
+    _user: models.User = Depends(require_role(ROLE_SUPER)),
+):
+    q = db.query(models.AuditLog)
+    if action:
+        q = q.filter(models.AuditLog.action == action)
+    return q.order_by(models.AuditLog.id.desc()).limit(min(max(limit, 1), 500)).all()
 
 
 # ─────────────  Аналітика (тільки super_admin)  ─────────────

@@ -108,6 +108,15 @@ export const getAnalytics = ({ from, to } = {}) => {
   return auth(`/analytics/summary${q ? `?${q}` : ''}`)
 }
 
+// ── Журнал аудиту (super_admin) ──
+export const getAudit = ({ action, limit = 200 } = {}) => {
+  const qs = new URLSearchParams()
+  if (action) qs.set('action', action)
+  if (limit) qs.set('limit', String(limit))
+  const q = qs.toString()
+  return auth(`/audit${q ? `?${q}` : ''}`)
+}
+
 // ── Користувачі (super_admin) ──
 export const getUsers = () => auth('/users')
 export const createUser = (payload) =>

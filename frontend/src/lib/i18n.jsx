@@ -130,6 +130,16 @@ const dict = {
       backupSaveHint: 'Збережіть ці коди в надійному місці. Кожен працює один раз і замінює код 2FA, якщо ви втратите телефон. Більше вони не покажуться.',
       backupCopy: 'Скопіювати', backupCopied: 'Скопійовано ✓', backupDone: 'Я зберіг коди',
       backupRegen: 'Перегенерувати коди', backupRegenHint: 'Введіть поточний код 2FA, щоб згенерувати нові (старі перестануть діяти).',
+      tabAudit: 'Журнал', auditTitle: 'Журнал подій',
+      auColTime: 'Час', auColAction: 'Подія', auColActor: 'Користувач', auColIp: 'IP',
+      auColResult: 'Результат', auColDetail: 'Деталі', auAll: 'Усі події',
+      auOk: 'OK', auFail: 'Збій',
+      auditActions: {
+        login_success: 'Вхід', login_failed: 'Невдалий вхід', login_ratelimited: 'Заблоковано (брутфорс)',
+        password_changed: 'Зміна пароля', '2fa_enabled': '2FA увімкнено', '2fa_disabled': '2FA вимкнено',
+        '2fa_backup_regenerated': 'Backup-коди оновлено', appointment_status_changed: 'Статус запису',
+        user_created: 'Користувача створено', user_deleted: 'Користувача видалено',
+      },
     },
   },
 
@@ -256,6 +266,16 @@ const dict = {
       backupSaveHint: 'Store these codes somewhere safe. Each works once and replaces your 2FA code if you lose your phone. They won’t be shown again.',
       backupCopy: 'Copy', backupCopied: 'Copied ✓', backupDone: 'I saved the codes',
       backupRegen: 'Regenerate codes', backupRegenHint: 'Enter your current 2FA code to generate new ones (old ones stop working).',
+      tabAudit: 'Audit', auditTitle: 'Event log',
+      auColTime: 'Time', auColAction: 'Event', auColActor: 'User', auColIp: 'IP',
+      auColResult: 'Result', auColDetail: 'Details', auAll: 'All events',
+      auOk: 'OK', auFail: 'Fail',
+      auditActions: {
+        login_success: 'Sign in', login_failed: 'Failed sign in', login_ratelimited: 'Blocked (brute force)',
+        password_changed: 'Password changed', '2fa_enabled': '2FA enabled', '2fa_disabled': '2FA disabled',
+        '2fa_backup_regenerated': 'Backup codes regenerated', appointment_status_changed: 'Booking status',
+        user_created: 'User created', user_deleted: 'User deleted',
+      },
     },
   },
 }

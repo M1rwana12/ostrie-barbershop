@@ -242,9 +242,20 @@
 - [x] **Мобільні таблиці**: `data-label` на td + media (max-640) → рядки стають картками
   (thead схований, label через `::before`). Стосується Записів і Користувачів. Білд OK (53 модулі).
 
+## АУДИТ-ЛОГ (міні-SOC) — 2026-06-14
+- [x] Модель `AuditLog` (ts, action, actor_email, ip, success, detail) + `audit.py` (record()
+  пише подію окремим commit, не валить основну операцію; `_prune` тримає ~5000 останніх).
+- [x] Логуються: login_success/failed/ratelimited, password_changed, 2fa_enabled/disabled/
+  backup_regenerated, appointment_status_changed, user_created/deleted. IP з X-Forwarded-For.
+- [x] `GET /audit?action=&limit=` (тільки super_admin, ліміт ≤500). `AuditOut`.
+- [x] Фронт: вкладка «Журнал» (super), `AdminAudit.jsx` — фільтр за подією, таблиця
+  (час/подія/користувач/IP/результат/деталі), бейдж OK/Збій, мобільні картки, i18n uk/en.
+- [x] Перевірено локально: події пишуться (login fail/success, user create/delete, pwd change),
+  фільтр працює, admin→403. Білд OK.
+
 ## ЗАПЛАНОВАНО / TODO
 - [ ] **Postgres Blueprint Sync у Render** (ручний крок користувача) — блокує персистентність
-  пароля/2FA/записів. render.yaml готовий (databases: ostrie-db).
+  пароля/2FA/записів/аудиту. render.yaml готовий (databases: ostrie-db).
 - [ ] Підтвердити/замінити стокові фото та hero-відео на власні (сюжет ↔ підпис).
 - [ ] Звірити реальні соц-акаунти, телефон, адресу, координати карти.
 - [ ] PWA (manifest + service worker), офлайн-кеш статичних ассетів.

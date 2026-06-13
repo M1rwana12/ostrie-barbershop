@@ -130,6 +130,17 @@ class TwoFACode(BaseModel):
     code: str = Field(min_length=6, max_length=10)
 
 
+class AuditOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    ts: str
+    action: str
+    actor_email: str | None = None
+    ip: str | None = None
+    success: bool = True
+    detail: str = ""
+
+
 class UserCreate(BaseModel):
     email: str = Field(max_length=160)
     password: str = Field(min_length=6, max_length=128)

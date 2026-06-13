@@ -77,3 +77,18 @@ class User(Base):
             return len(json.loads(self.backup_codes or "[]"))
         except ValueError:
             return 0
+
+
+class AuditLog(Base):
+    """Журнал подій безпеки/дій адмінів (міні-SOC)."""
+    __tablename__ = "audit_log"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    ts: Mapped[str] = mapped_column(
+        String(40), default=lambda: datetime.now(timezone.utc).isoformat(), index=True
+    )
+    action: Mapped[str] = mapped_column(String(40), index=True)
+    actor_email: Mapped[str | None] = mapped_column(String(160), nullable=True, default=None)
+    ip: Mapped[str | None] = mapped_column(String(64), nullable=True, default=None)
+    success: Mapped[bool] = mapped_column(default=True)
+    detail: Mapped[str] = mapped_column(String(300), default="")

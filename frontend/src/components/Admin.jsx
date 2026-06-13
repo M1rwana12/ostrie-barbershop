@@ -5,6 +5,7 @@ import Logo from './Logo'
 import AdminBookings from './AdminBookings'
 import AdminAnalytics from './AdminAnalytics'
 import AdminUsers from './AdminUsers'
+import AdminAudit from './AdminAudit'
 import AdminSecurity from './AdminSecurity'
 
 export default function Admin() {
@@ -136,6 +137,11 @@ export default function Admin() {
                   {t('admin.tabUsers')}
                 </button>
               )}
+              {isSuper && (
+                <button className={tab === 'audit' ? 'active' : ''} onClick={() => setTab('audit')}>
+                  {t('admin.tabAudit')}
+                </button>
+              )}
               <button className={tab === 'security' ? 'active' : ''} onClick={() => setTab('security')}>
                 {t('admin.tabSecurity')}
               </button>
@@ -144,6 +150,7 @@ export default function Admin() {
             {tab === 'bookings' && <AdminBookings canEdit={isSuper || user.role === 'admin'} onUnauthorized={logout} />}
             {tab === 'analytics' && isSuper && <AdminAnalytics onUnauthorized={logout} />}
             {tab === 'users' && isSuper && <AdminUsers currentEmail={user.email} onUnauthorized={logout} />}
+            {tab === 'audit' && isSuper && <AdminAudit onUnauthorized={logout} />}
             {tab === 'security' && <AdminSecurity onUnauthorized={logout} />}
           </>
         )}
