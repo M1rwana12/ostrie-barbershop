@@ -62,3 +62,7 @@ export const getAvailability = (barberId, date) =>
   request(`/availability?barber_id=${encodeURIComponent(barberId)}&date=${encodeURIComponent(date)}`)
 export const createAppointment = (payload) =>
   request('/appointments', { method: 'POST', body: JSON.stringify(payload) })
+
+// Адмін: список записів. Токен передаємо в заголовку X-Admin-Token.
+export const getAppointments = (token) =>
+  request('/appointments', { headers: { 'X-Admin-Token': token } })

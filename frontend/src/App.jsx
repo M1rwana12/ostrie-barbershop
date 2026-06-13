@@ -14,8 +14,26 @@ import About from './components/About'
 import Reviews from './components/Reviews'
 import Booking from './components/Booking'
 import Footer from './components/Footer'
+import Admin from './components/Admin'
+
+// Простий hash-роутинг (#/admin) — працює на GitHub Pages без 404-фолбеку
+function useHashRoute() {
+  const [hash, setHash] = useState(() => window.location.hash)
+  useEffect(() => {
+    const onChange = () => setHash(window.location.hash)
+    window.addEventListener('hashchange', onChange)
+    return () => window.removeEventListener('hashchange', onChange)
+  }, [])
+  return hash
+}
 
 export default function App() {
+  const route = useHashRoute()
+  if (route.startsWith('#/admin')) return <Admin />
+  return <Landing />
+}
+
+function Landing() {
   const [services, setServices] = useState([])
   const [barbers, setBarbers] = useState([])
   const [loading, setLoading] = useState(true)
