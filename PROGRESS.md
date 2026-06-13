@@ -51,6 +51,8 @@
 - [x] Перші коміти: `chore: initialize…`, `feat: build OSTRIE…` (sole author, без co-author).
 - [x] **Push виконано** → https://github.com/M1rwana12/ostrie-barbershop (main).
   Репо створено через GitHub API (токен з Git Credential Manager).
+- [x] **GitHub Pages увімкнено** (branch main, root). Сайт live:
+  https://m1rwana12.github.io/ostrie-barbershop/ (build: built, HTTP 200).
 
 ## ЗАПЛАНОВАНО / TODO
 - [ ] Замінити плейсхолдери на реальні фото (hero, майстри, галерея).
