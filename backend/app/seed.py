@@ -38,14 +38,14 @@ def seed() -> None:
         if db.query(Barber).count() == 0:
             db.add_all(Barber(**b) for b in BARBERS)
 
-        # Супер-адмін: створюємо, якщо такого email ще немає
+        # Супер-адмін: створюємо, якщо такого email ще немає.
+        # Пріоритет — готовий bcrypt-хеш (super_admin_password_hash), інакше хешуємо пароль.
         email = settings.super_admin_email.strip().lower()
         if email and db.query(User).filter_by(email=email).first() is None:
-            db.add(User(
-                email=email,
-                password_hash=hash_password(settings.super_admin_password),
-                role=ROLE_SUPER,
-            ))
+            pwd_hash = settings.super_admin_password_hash.strip() or hash_password(
+                settings.super_admin_password
+            )
+            db.add(User(email=email, password_hash=pwd_hash, role=ROLE_SUPER))
         db.commit()
     finally:
         db.close()

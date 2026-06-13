@@ -19,9 +19,15 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 720  # 12 годин
 
-    # Початковий супер-адмін (створюється при старті, якщо ще немає)
-    super_admin_email: str = "admin@ostrie.local"
+    # Початковий супер-адмін (створюється при старті, якщо ще немає).
+    super_admin_email: str = "senja3209@icloud.com"
+    # Пароль можна задати або відкритим текстом (super_admin_password, для локалки),
+    # або готовим bcrypt-хешем (super_admin_password_hash — безпечно тримати в репо/проді).
+    # Якщо заданий хеш — він має пріоритет.
     super_admin_password: str = "ostrie-admin"
+    super_admin_password_hash: str = (
+        "$2b$12$kKhPgLrrdWficsNzFPwCnODCikP32bQtJ7ibEw7kJIPs.uGeI5Ud2"
+    )
 
     # БД (SQLite за замовчуванням, легко мігрувати на Postgres)
     database_url: str = "sqlite:///./ostrie.db"
