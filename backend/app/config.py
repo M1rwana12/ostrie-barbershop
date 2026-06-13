@@ -24,5 +24,21 @@ class Settings(BaseSettings):
     def cors_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
 
+    @property
+    def db_url(self) -> str:
+        """Нормалізує URL БД під драйвер psycopg3.
+
+        Render віддає DATABASE_URL як `postgres://` або `postgresql://`
+        (без драйвера → SQLAlchemy узяв би psycopg2). Приводимо до
+        `postgresql+psycopg://`, щоб працював встановлений psycopg3.
+        SQLite лишаємо як є.
+        """
+        url = self.database_url
+        if url.startswith("postgres://"):
+            url = "postgresql://" + url[len("postgres://"):]
+        if url.startswith("postgresql://"):
+            url = "postgresql+psycopg://" + url[len("postgresql://"):]
+        return url
+
 
 settings = Settings()

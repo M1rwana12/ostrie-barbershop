@@ -125,17 +125,27 @@
 - [x] **Жива доступність слотів** — backend `GET /availability?barber_id&date` → зайняті часи;
   форма підтягує й вимикає зайняті слоти в реальному часі. Перевірено на проді (end-to-end).
 
+## БД: POSTGRES НА RENDER — 2026-06-14
+- [x] Драйвер `psycopg[binary]>=3.2` у `requirements.txt`.
+- [x] Нормалізація URL у `config.py` (`settings.db_url`): `postgres://` / `postgresql://`
+  → `postgresql+psycopg://`. SQLite лишається дефолтом для локалки.
+- [x] `database.py` бере `settings.db_url` + `pool_pre_ping` для не-SQLite (відсіює
+  «протухлі» зʼєднання на free-Render). `create_all`+`seed` ідемпотентні → таблиці й
+  початкові дані піднімуться на чистій Postgres автоматично.
+- [x] `render.yaml`: блок `databases:` (free Postgres `ostrie-db`) + env `DATABASE_URL`
+  через `fromDatabase`. Локально перевірено: нормалізація + старт на SQLite (5 послуг, 4 майстри).
+- ⚠️ Free-Postgres на Render видаляється через ~30 днів. Деплой: Render підхопить нову
+  версію render.yaml (Blueprint sync) і створить БД; перший старт наповнить seed-даними.
+
 ## ЗАПЛАНОВАНО / TODO
 - [ ] Підтвердити/замінити стокові фото та hero-відео на власні (сюжет ↔ підпис).
 - [ ] Звірити реальні соц-акаунти, телефон, адресу, координати карти.
 - [ ] Адмін-панель (перегляд записів через `GET /appointments` + токен) — окремий роут.
 - [ ] i18n UA/EN перемикач.
 - [ ] PWA (manifest + service worker), офлайн-кеш статичних ассетів.
-- [ ] Postgres на Render (постійні дані замість ефемерної SQLite).
 - [ ] Тости/нотифікації замість inline-повідомлень; skeleton-loaders.
 - [ ] Rate-limit на POST /appointments (анти-спам), honeypot у формі.
-- [ ] Адмін-панель для перегляду записів (зараз лише `GET /appointments` з токеном).
-- [ ] Postgres на Render для постійних даних; власний домен у CORS.
+- [ ] Власний домен у CORS.
 - [ ] (Опц.) контроль доступних слотів по майстру/даті на фронті (підсвічувати зайняте).
 
 ---

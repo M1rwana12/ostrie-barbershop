@@ -20,8 +20,23 @@ services:
       # Секрет для GET /appointments (Render згенерує випадкове значення)
       - key: ADMIN_TOKEN
         generateValue: true
+      # Postgres — постійне сховище замість ефемерної SQLite.
+      # Render підставить connection string з БД нижче.
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ostrie-db
+          property: connectionString
       # Telegram — впиши значення вручну в дашборді Render (sync:false = не з репо)
       - key: TELEGRAM_BOT_TOKEN
         sync: false
       - key: TELEGRAM_CHAT_ID
         sync: false
+
+# Безкоштовна Postgres-БД на Render (постійні дані).
+# Увага: free-Postgres на Render видаляється через ~30 днів — для портфоліо ок,
+# для прод-навантаження варто перейти на платний план.
+databases:
+  - name: ostrie-db
+    plan: free
+    databaseName: ostrie
+    user: ostrie
