@@ -173,11 +173,49 @@
 - [x] Фронт обробляє 429 (показує повідомлення бекенду, як і 409). Білд OK.
 - [x] Перевірено локально: honeypot→201 без збереження; 5×201 далі 429; stored=5.
 
+## АДМІНКА 2.0: АВТОРИЗАЦІЯ + РОЛІ + АНАЛІТИКА — 2026-06-14
+Рішення (узгоджено з користувачем): повноцінна авторизація (акаунти+JWT, ролі), аналітика
+по виручці (ціни послуг, без собівартості), статуси записів new/done/cancelled.
+### Backend
+- [x] Залежності: `bcrypt`, `PyJWT`. Конфіг: `JWT_SECRET`, `JWT_EXPIRE_MINUTES`,
+  `SUPER_ADMIN_EMAIL/PASSWORD`.
+- [x] Модель `User` (email unique, password_hash bcrypt, role). Ролі: `super_admin/admin/barber`.
+  `Appointment.status` (new/done/cancelled, default new).
+- [x] `auth.py`: bcrypt-хеш/перевірка, JWT create/decode, залежності `get_current_user`,
+  `require_role(*roles)`. `HTTPBearer`.
+- [x] `migrate.py`: ідемпотентний `ALTER TABLE appointments ADD COLUMN status` (бо create_all
+  не додає колонки до існуючих таблиць). Запускається при старті після create_all.
+- [x] `seed.py`: створює супер-адміна з env при першому старті (лише якщо email ще немає —
+  ⚠️ зміна пароля пізніше не оновить існуючого користувача).
+- [x] Ендпоінти: `POST /auth/login` (→JWT), `GET /auth/me`, `PATCH /appointments/{id}/status`
+  (admin+super), `GET/POST/DELETE /users` (тільки super, не можна видалити себе),
+  `GET /analytics/summary?date_from&date_to` (тільки super). `GET /appointments` → тепер JWT.
+  X-Admin-Token прибрано з ендпоінтів (ADMIN_TOKEN лишився легасі-env).
+- [x] Аналітика: виручка ТІЛЬКИ за status=done; counts по статусах, avg_check, розбивки
+  by_service/by_barber/by_day. Дати фільтруються лексикографічно (YYYY-MM-DD).
+- [x] Перевірено локально end-to-end: 401/логін/me/статус(422 на невалідний)/аналітика
+  (revenue=600, avg=600)/users(409 на дубль). Ролі: admin→403 на analytics/users, 200 на
+  appointments; super delete self→400.
+### Frontend
+- [x] `api.js`: JWT у sessionStorage (`ostrie_jwt`), `Bearer`-обгортка `auth()`, функції
+  login/getMe/getAppointments/updateAppointmentStatus/getAnalytics/users CRUD.
+- [x] `Admin.jsx` переписано: логін email+пароль, авто-вхід за JWT, бейдж ролі, вкладки
+  **Записи / Аналітика / Користувачі** (останні дві — лише super_admin).
+- [x] `AdminBookings.jsx`: таблиця + зміна статусу селектом (optimistic + відкат), кольори статусів.
+- [x] `AdminAnalytics.jsx`: фільтр дат, картки (виручка/середній чек/лічильники), CSS-бари
+  by_service/by_barber/by_day (без сторонніх чарт-ліб).
+- [x] `AdminUsers.jsx`: список, створення (email/пароль/роль), видалення з підтвердженням.
+- [x] i18n uk/en для всієї адмінки. Стилі `.admin-tabs/.an-*/.status-*`. Білд OK (52 модулі).
+- [x] `render.yaml`: `JWT_SECRET` (generateValue), `SUPER_ADMIN_EMAIL/PASSWORD` (sync:false).
+- Вхід: `…/#/admin` → email+пароль супер-адміна (з Render env).
+
 ## ЗАПЛАНОВАНО / TODO
 - [ ] Підтвердити/замінити стокові фото та hero-відео на власні (сюжет ↔ підпис).
 - [ ] Звірити реальні соц-акаунти, телефон, адресу, координати карти.
 - [ ] PWA (manifest + service worker), офлайн-кеш статичних ассетів.
 - [ ] Тости/нотифікації замість inline-повідомлень; skeleton-loaders.
+- [ ] Зміна власного пароля / скидання (зараз super-admin пароль лише через перший seed).
+- [ ] Аудит-лог дій (міні-SOC) — наступний крок безпеки після авторизації.
 - [ ] (Опц.) i18n контенту з БД та meta/JSON-LD (потребує бекенд-перекладів).
 - [ ] PWA (manifest + service worker), офлайн-кеш статичних ассетів.
 - [ ] Тости/нотифікації замість inline-повідомлень; skeleton-loaders.

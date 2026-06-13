@@ -11,8 +11,17 @@ class Settings(BaseSettings):
     telegram_bot_token: str = ""
     telegram_chat_id: str = ""
 
-    # Адмін-токен для GET /appointments
+    # Адмін-токен (легасі) — більше не використовується ендпоінтами, лишено для сумісності
     admin_token: str = "change-me"
+
+    # JWT-автентифікація
+    jwt_secret: str = "dev-insecure-secret-change-me"
+    jwt_algorithm: str = "HS256"
+    jwt_expire_minutes: int = 720  # 12 годин
+
+    # Початковий супер-адмін (створюється при старті, якщо ще немає)
+    super_admin_email: str = "admin@ostrie.local"
+    super_admin_password: str = "ostrie-admin"
 
     # БД (SQLite за замовчуванням, легко мігрувати на Postgres)
     database_url: str = "sqlite:///./ostrie.db"

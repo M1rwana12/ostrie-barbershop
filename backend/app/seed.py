@@ -1,6 +1,8 @@
-"""Початкові дані для послуг та майстрів."""
+"""Початкові дані для послуг, майстрів та супер-адміна."""
+from .auth import hash_password
+from .config import settings
 from .database import SessionLocal
-from .models import Barber, Service
+from .models import ROLE_SUPER, Barber, Service, User
 
 SERVICES = [
     {"name": "Чоловіча стрижка", "price": 600, "duration": 45,
@@ -35,6 +37,15 @@ def seed() -> None:
             db.add_all(Service(**s) for s in SERVICES)
         if db.query(Barber).count() == 0:
             db.add_all(Barber(**b) for b in BARBERS)
+
+        # Супер-адмін: створюємо, якщо такого email ще немає
+        email = settings.super_admin_email.strip().lower()
+        if email and db.query(User).filter_by(email=email).first() is None:
+            db.add(User(
+                email=email,
+                password_hash=hash_password(settings.super_admin_password),
+                role=ROLE_SUPER,
+            ))
         db.commit()
     finally:
         db.close()

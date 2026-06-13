@@ -4,6 +4,8 @@ from datetime import date as date_type
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from .models import ROLE_BARBER, ROLES, STATUSES
+
 
 class ServiceOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -77,4 +79,61 @@ class AppointmentOut(BaseModel):
     barber_id: int | None = None
     date: str
     time: str
+    status: str = "new"
     created_at: str | None = None
+
+
+class StatusUpdate(BaseModel):
+    status: str
+
+    @field_validator("status")
+    @classmethod
+    def _status(cls, v: str) -> str:
+        if v not in STATUSES:
+            raise ValueError(f"Статус має бути одним із: {', '.join(STATUSES)}")
+        return v
+
+
+# ── Автентифікація / користувачі ──
+EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
+
+class LoginIn(BaseModel):
+    email: str
+    password: str
+
+
+class TokenOut(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    email: str
+    role: str
+
+
+class UserOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    email: str
+    role: str
+    created_at: str | None = None
+
+
+class UserCreate(BaseModel):
+    email: str = Field(max_length=160)
+    password: str = Field(min_length=6, max_length=128)
+    role: str = ROLE_BARBER
+
+    @field_validator("email")
+    @classmethod
+    def _email(cls, v: str) -> str:
+        v = v.strip().lower()
+        if not EMAIL_RE.match(v):
+            raise ValueError("Некоректний email")
+        return v
+
+    @field_validator("role")
+    @classmethod
+    def _role(cls, v: str) -> str:
+        if v not in ROLES:
+            raise ValueError(f"Роль має бути однією з: {', '.join(ROLES)}")
+        return v

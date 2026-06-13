@@ -17,9 +17,18 @@ services:
       # Дозволені джерела CORS — фронтенд на GitHub Pages
       - key: CORS_ORIGINS
         value: https://m1rwana12.github.io
-      # Секрет для GET /appointments (Render згенерує випадкове значення)
+      # Легасі токен (більше не використовується ендпоінтами)
       - key: ADMIN_TOKEN
         generateValue: true
+      # JWT-секрет для підпису токенів сесій (Render згенерує)
+      - key: JWT_SECRET
+        generateValue: true
+      # Початковий супер-адмін. ВАЖЛИВО: задай значення в дашборді ДО першого старту —
+      # користувач створюється лише раз при першому seed (зміна пізніше не оновить пароль).
+      - key: SUPER_ADMIN_EMAIL
+        sync: false
+      - key: SUPER_ADMIN_PASSWORD
+        sync: false
       # Postgres — постійне сховище замість ефемерної SQLite.
       # Render підставить connection string з БД нижче.
       - key: DATABASE_URL

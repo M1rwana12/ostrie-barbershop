@@ -568,3 +568,60 @@ section { position: relative; }
 .admin-table td.nowrap { white-space: nowrap; }
 .admin-table td.muted { color: var(--ink-dim); }
 .admin-table td a:hover { color: var(--accent); }
+
+/* Адмін: ролі/вкладки/статуси/аналітика */
+.admin-who { color: var(--ink-dim); font-size: 0.82rem; }
+.admin-who b { color: var(--ink); }
+.admin-login .field { margin-bottom: 0; }
+.admin-login .field + .field { margin-top: 1rem; }
+
+.admin-tabs { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 2.4rem; border-bottom: 1px solid var(--line); }
+.admin-tabs button {
+  appearance: none; background: transparent; border: none; cursor: pointer;
+  font-family: 'Anton', sans-serif; letter-spacing: 0.06em; text-transform: uppercase;
+  font-size: 0.92rem; color: var(--ink-dim); padding: 0.7rem 1rem; position: relative;
+  transition: color 0.25s var(--ease);
+}
+.admin-tabs button:hover { color: var(--ink); }
+.admin-tabs button.active { color: var(--ink); }
+.admin-tabs button.active::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--accent);
+}
+.admin-toolbar { margin-bottom: 1.4rem; }
+
+/* Статуси */
+.status-sel, .status-badge {
+  font-family: 'Manrope', sans-serif; font-size: 0.82rem; font-weight: 700;
+  border-radius: 999px; padding: 0.3em 0.7em; border: 1px solid var(--line);
+  background: var(--bg-2); color: var(--ink);
+}
+.status-sel { cursor: pointer; }
+.status-badge { display: inline-block; }
+.st-done .status-sel, .st-done.status-badge { border-color: #2f7d4f; color: #6fd699; }
+.st-cancelled .status-sel, .st-cancelled.status-badge { border-color: #7d2f2f; color: #e08a8a; }
+.st-new .status-sel, .st-new.status-badge { border-color: var(--accent-lo); color: var(--accent-hi); }
+.admin-table tr.st-cancelled td:not(:last-child) { opacity: 0.55; }
+
+/* Аналітика */
+.an-note { color: var(--ink-dim); font-size: 0.86rem; margin-top: 0.8rem; }
+.an-filter { display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap; margin-bottom: 2.2rem; }
+.an-filter .field { margin-bottom: 0; }
+.an-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; margin-bottom: 2.6rem; }
+.an-card { background: var(--bg); padding: 1.3rem 1.4rem; }
+.an-card.accent { background: color-mix(in srgb, var(--accent) 12%, var(--bg)); }
+.an-k { font-size: 0.74rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-dim); }
+.an-v { font-family: 'Anton', sans-serif; font-size: 1.9rem; margin-top: 0.4rem; }
+.an-v small { font-size: 0.9rem; color: var(--ink-dim); }
+.an-sections { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2.4rem; }
+.an-h { font-family: 'Anton', sans-serif; letter-spacing: 0.06em; text-transform: uppercase; font-size: 1rem; color: var(--ink-dim); margin-bottom: 1rem; }
+.an-bars { display: flex; flex-direction: column; gap: 0.7rem; }
+.an-bar-row { display: grid; grid-template-columns: minmax(80px, 1fr) 2fr auto; gap: 0.8rem; align-items: center; font-size: 0.86rem; }
+.an-bar-label { color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.an-bar-track { height: 8px; background: var(--bg-3); border-radius: 999px; overflow: hidden; }
+.an-bar-fill { display: block; height: 100%; background: var(--accent); border-radius: 999px; }
+.an-bar-val { color: var(--ink-dim); white-space: nowrap; font-size: 0.8rem; }
+
+/* Користувачі */
+.user-form { margin-bottom: 1rem; }
+.link-danger { background: none; border: none; cursor: pointer; color: #e08a8a; font-weight: 700; font-size: 0.85rem; padding: 0; }
+.link-danger:hover { text-decoration: underline; }

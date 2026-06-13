@@ -63,6 +63,39 @@ export const getAvailability = (barberId, date) =>
 export const createAppointment = (payload) =>
   request('/appointments', { method: 'POST', body: JSON.stringify(payload) })
 
-// Адмін: список записів. Токен передаємо в заголовку X-Admin-Token.
-export const getAppointments = (token) =>
-  request('/appointments', { headers: { 'X-Admin-Token': token } })
+// ── Авторизація (JWT) ──
+const TOKEN_KEY = 'ostrie_jwt'
+export const getToken = () => sessionStorage.getItem(TOKEN_KEY) || ''
+export const setToken = (t) => sessionStorage.setItem(TOKEN_KEY, t)
+export const clearToken = () => sessionStorage.removeItem(TOKEN_KEY)
+
+const authHeaders = () => {
+  const t = getToken()
+  return t ? { Authorization: `Bearer ${t}` } : {}
+}
+const auth = (path, options = {}) =>
+  request(path, { ...options, headers: { ...authHeaders(), ...(options.headers || {}) } })
+
+export const login = (email, password) =>
+  request('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) })
+export const getMe = () => auth('/auth/me')
+
+// ── Адмін: записи ──
+export const getAppointments = () => auth('/appointments')
+export const updateAppointmentStatus = (id, status) =>
+  auth(`/appointments/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) })
+
+// ── Аналітика (super_admin) ──
+export const getAnalytics = ({ from, to } = {}) => {
+  const qs = new URLSearchParams()
+  if (from) qs.set('date_from', from)
+  if (to) qs.set('date_to', to)
+  const q = qs.toString()
+  return auth(`/analytics/summary${q ? `?${q}` : ''}`)
+}
+
+// ── Користувачі (super_admin) ──
+export const getUsers = () => auth('/users')
+export const createUser = (payload) =>
+  auth('/users', { method: 'POST', body: JSON.stringify(payload) })
+export const deleteUser = (id) => auth(`/users/${id}`, { method: 'DELETE' })

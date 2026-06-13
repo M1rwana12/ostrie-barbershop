@@ -1,11 +1,16 @@
-"""OSTRIE API — FastAPI застосунок: послуги, майстри, онлайн-запис."""
-from fastapi import Depends, FastAPI, Header, HTTPException, Request
+"""OSTRIE API — FastAPI застосунок: послуги, майстри, онлайн-запис, адмінка."""
+from collections import defaultdict
+
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
 from . import models, schemas
+from .auth import create_access_token, hash_password, require_role, verify_password
 from .config import settings
 from .database import Base, engine, get_db
+from .migrate import run_migrations
+from .models import ROLE_ADMIN, ROLE_SUPER, STATUS_DONE
 from .ratelimit import client_ip, is_rate_limited
 from .seed import seed
 from .telegram import notify_new_appointment
@@ -14,8 +19,9 @@ from .telegram import notify_new_appointment
 RATE_LIMIT = 5
 RATE_WINDOW_SECONDS = 600  # 10 хвилин
 
-# Створюємо таблиці та наповнюємо seed-даними при старті
+# Створюємо таблиці, доганяємо схему й наповнюємо seed-даними при старті
 Base.metadata.create_all(bind=engine)
+run_migrations()
 seed()
 
 app = FastAPI(title="OSTRIE API", version="1.0.0", description="API барбершопу OSTRIE")
@@ -126,13 +132,158 @@ async def create_appointment(
 
 @app.get("/appointments", response_model=list[schemas.AppointmentOut], tags=["admin"])
 def list_appointments(
-    x_admin_token: str | None = Header(default=None),
     db: Session = Depends(get_db),
+    _user: models.User = Depends(require_role(*models.ROLES)),
 ):
-    if x_admin_token != settings.admin_token:
-        raise HTTPException(status_code=401, detail="Невірний або відсутній адмін-токен")
     return (
         db.query(models.Appointment)
         .order_by(models.Appointment.id.desc())
         .all()
     )
+
+
+@app.patch(
+    "/appointments/{appt_id}/status",
+    response_model=schemas.AppointmentOut,
+    tags=["admin"],
+)
+def update_status(
+    appt_id: int,
+    payload: schemas.StatusUpdate,
+    db: Session = Depends(get_db),
+    _user: models.User = Depends(require_role(ROLE_SUPER, ROLE_ADMIN)),
+):
+    appt = db.get(models.Appointment, appt_id)
+    if appt is None:
+        raise HTTPException(status_code=404, detail="Запис не знайдено")
+    appt.status = payload.status
+    db.commit()
+    db.refresh(appt)
+    return appt
+
+
+# ─────────────  Авторизація  ─────────────
+@app.post("/auth/login", response_model=schemas.TokenOut, tags=["auth"])
+def login(payload: schemas.LoginIn, db: Session = Depends(get_db)):
+    email = payload.email.strip().lower()
+    user = db.query(models.User).filter_by(email=email).first()
+    if user is None or not verify_password(payload.password, user.password_hash):
+        raise HTTPException(status_code=401, detail="Невірний email або пароль")
+    return schemas.TokenOut(
+        access_token=create_access_token(user), email=user.email, role=user.role
+    )
+
+
+@app.get("/auth/me", response_model=schemas.UserOut, tags=["auth"])
+def me(user: models.User = Depends(require_role(*models.ROLES))):
+    return user
+
+
+# ─────────────  Користувачі (тільки super_admin)  ─────────────
+@app.get("/users", response_model=list[schemas.UserOut], tags=["admin"])
+def list_users(
+    db: Session = Depends(get_db),
+    _user: models.User = Depends(require_role(ROLE_SUPER)),
+):
+    return db.query(models.User).order_by(models.User.id).all()
+
+
+@app.post("/users", response_model=schemas.UserOut, status_code=201, tags=["admin"])
+def create_user(
+    payload: schemas.UserCreate,
+    db: Session = Depends(get_db),
+    _user: models.User = Depends(require_role(ROLE_SUPER)),
+):
+    if db.query(models.User).filter_by(email=payload.email).first() is not None:
+        raise HTTPException(status_code=409, detail="Користувач з таким email уже існує")
+    user = models.User(
+        email=payload.email,
+        password_hash=hash_password(payload.password),
+        role=payload.role,
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+@app.delete("/users/{user_id}", status_code=204, tags=["admin"])
+def delete_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current: models.User = Depends(require_role(ROLE_SUPER)),
+):
+    if user_id == current.id:
+        raise HTTPException(status_code=400, detail="Не можна видалити власний акаунт")
+    user = db.get(models.User, user_id)
+    if user is None:
+        raise HTTPException(status_code=404, detail="Користувача не знайдено")
+    db.delete(user)
+    db.commit()
+
+
+# ─────────────  Аналітика (тільки super_admin)  ─────────────
+@app.get("/analytics/summary", tags=["analytics"])
+def analytics_summary(
+    date_from: str | None = None,
+    date_to: str | None = None,
+    db: Session = Depends(get_db),
+    _user: models.User = Depends(require_role(ROLE_SUPER)),
+) -> dict:
+    """Зведення для супер-адміна. Виручка рахується ТІЛЬКИ за статусом done.
+
+    Дати порівнюються лексикографічно (формат YYYY-MM-DD це коректно).
+    """
+    q = db.query(models.Appointment)
+    if date_from:
+        q = q.filter(models.Appointment.date >= date_from)
+    if date_to:
+        q = q.filter(models.Appointment.date <= date_to)
+    appts = q.all()
+
+    prices = {s.id: s.price for s in db.query(models.Service).all()}
+    service_names = {s.id: s.name for s in db.query(models.Service).all()}
+    barber_names = {b.id: b.name for b in db.query(models.Barber).all()}
+
+    counts = {"new": 0, "done": 0, "cancelled": 0, "total": len(appts)}
+    revenue = 0
+    by_service: dict[int, dict] = defaultdict(lambda: {"count": 0, "revenue": 0})
+    by_barber: dict[str, dict] = defaultdict(lambda: {"count": 0, "revenue": 0})
+    by_day: dict[str, dict] = defaultdict(lambda: {"count": 0, "revenue": 0})
+
+    for a in appts:
+        counts[a.status] = counts.get(a.status, 0) + 1
+        if a.status != STATUS_DONE:
+            continue
+        price = prices.get(a.service_id, 0)
+        revenue += price
+        bs = by_service[a.service_id]
+        bs["count"] += 1
+        bs["revenue"] += price
+        bkey = barber_names.get(a.barber_id, "Будь-який") if a.barber_id else "Будь-який"
+        bb = by_barber[bkey]
+        bb["count"] += 1
+        bb["revenue"] += price
+        bd = by_day[a.date]
+        bd["count"] += 1
+        bd["revenue"] += price
+
+    done = counts["done"]
+    return {
+        "range": {"from": date_from, "to": date_to},
+        "revenue": revenue,
+        "avg_check": round(revenue / done, 2) if done else 0,
+        "counts": counts,
+        "by_service": sorted(
+            [{"name": service_names.get(sid, f"#{sid}"), **v} for sid, v in by_service.items()],
+            key=lambda x: x["revenue"], reverse=True,
+        ),
+        "by_barber": sorted(
+            [{"name": name, **v} for name, v in by_barber.items()],
+            key=lambda x: x["revenue"], reverse=True,
+        ),
+        "by_day": sorted(
+            [{"date": d, **v} for d, v in by_day.items()],
+            key=lambda x: x["date"],
+        ),
+    }
