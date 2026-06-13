@@ -99,13 +99,15 @@
   Workflow `.github/workflows/deploy-frontend.yml`: build Vite → deploy Pages.
   Live: https://m1rwana12.github.io/ostrie-barbershop/ (HTTP 200).
   `vite.config` base=`/ostrie-barbershop/`. URL бекенду — repo variable `VITE_API_URL`.
-- [ ] **Backend → Render** (Blueprint `render.yaml`, free plan). Очікує дії користувача:
-  dashboard.render.com → Blueprint → під'єднати репо → Apply. Сервіс `ostrie-barbershop-api`.
-  CORS уже дозволяє https://m1rwana12.github.io. Після деплою — звірити URL з `VITE_API_URL`.
-  Нюанси free: сон після 15 хв, ефемерний диск (SQLite скидається) → для прод Postgres.
+- [x] **Backend → Render** (Blueprint `render.yaml`, free plan) — ЗАДЕПЛОЄНО.
+  URL: https://ostrie-barbershop-api.onrender.com (= `VITE_API_URL`, збіглося).
+  Перевірено end-to-end: GET /services (5), /barbers (4), POST → 201, дубль → 409,
+  CORS дозволяє https://m1rwana12.github.io. Live-бандл фронту звертається на цей URL.
+  Нюанс free: cold start — перший запит після сну може дати 404 (`x-render-routing: no-server`),
+  поки інстанс прокидається. Пом'якшено: GET у `api.js` ретраїться кілька разів.
+  Ефемерний диск → SQLite скидається при редеплої (для прод — Postgres).
 
 ## ЗАПЛАНОВАНО / TODO
-- [ ] **Підняти бекенд на Render** і (за потреби) оновити `VITE_API_URL` + перезапустити Pages.
 - [ ] Замінити плейсхолдери на реальні фото (hero, майстри, галерея).
 - [ ] Підключити справжній Google Maps iframe у `.map-strip`.
 - [ ] Реальні соц-посилання та номер телефону.
