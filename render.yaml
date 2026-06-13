@@ -1,0 +1,27 @@
+# Render Blueprint — бекенд OSTRIE (FastAPI).
+# Деплой: render.com → New + → Blueprint → під'єднати репозиторій M1rwana12/ostrie-barbershop.
+# Render підхопить цей файл і створить web-сервіс автоматично.
+services:
+  - type: web
+    name: ostrie-barbershop-api
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /
+    envVars:
+      # Стабільна версія Python з готовими wheels
+      - key: PYTHON_VERSION
+        value: 3.12.6
+      # Дозволені джерела CORS — фронтенд на GitHub Pages
+      - key: CORS_ORIGINS
+        value: https://m1rwana12.github.io
+      # Секрет для GET /appointments (Render згенерує випадкове значення)
+      - key: ADMIN_TOKEN
+        generateValue: true
+      # Telegram — впиши значення вручну в дашборді Render (sync:false = не з репо)
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_CHAT_ID
+        sync: false
