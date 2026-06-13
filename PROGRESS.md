@@ -49,9 +49,8 @@
 ## В ПРОЦЕСІ
 - [x] Git ініціалізовано (`main`), user.name=m1rwana12, user.email=senja3209@icloud.com.
 - [x] Перші коміти: `chore: initialize…`, `feat: build OSTRIE…` (sole author, без co-author).
-- [ ] **Push** — очікує на remote. `gh` не встановлено, remote не задано.
-  Виконати: створити репо на GitHub (акаунт m1rwana12), потім:
-  `git remote add origin <URL>` → `git push -u origin main`.
+- [x] **Push виконано** → https://github.com/M1rwana12/ostrie-barbershop (main).
+  Репо створено через GitHub API (токен з Git Credential Manager).
 
 ## ЗАПЛАНОВАНО / TODO
 - [ ] Замінити плейсхолдери на реальні фото (hero, майстри, галерея).
