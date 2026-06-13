@@ -94,13 +94,24 @@
 - [x] `src/lib/api.js` — клієнт REST (VITE_API_URL з `.env`).
 - [x] README з інструкціями запуску обох частин і налаштування Telegram.
 
+## ДЕПЛОЙ — 2026-06-13
+- [x] **Frontend → GitHub Pages** (автоматично через GitHub Actions).
+  Workflow `.github/workflows/deploy-frontend.yml`: build Vite → deploy Pages.
+  Live: https://m1rwana12.github.io/ostrie-barbershop/ (HTTP 200).
+  `vite.config` base=`/ostrie-barbershop/`. URL бекенду — repo variable `VITE_API_URL`.
+- [ ] **Backend → Render** (Blueprint `render.yaml`, free plan). Очікує дії користувача:
+  dashboard.render.com → Blueprint → під'єднати репо → Apply. Сервіс `ostrie-barbershop-api`.
+  CORS уже дозволяє https://m1rwana12.github.io. Після деплою — звірити URL з `VITE_API_URL`.
+  Нюанси free: сон після 15 хв, ефемерний диск (SQLite скидається) → для прод Postgres.
+
 ## ЗАПЛАНОВАНО / TODO
+- [ ] **Підняти бекенд на Render** і (за потреби) оновити `VITE_API_URL` + перезапустити Pages.
 - [ ] Замінити плейсхолдери на реальні фото (hero, майстри, галерея).
 - [ ] Підключити справжній Google Maps iframe у `.map-strip`.
 - [ ] Реальні соц-посилання та номер телефону.
 - [ ] OG-зображення для шерингу, favicon.
 - [ ] Адмін-панель для перегляду записів (зараз лише `GET /appointments` з токеном).
-- [ ] Деплой: фронт (Pages/Vercel) + бекенд (Render/Fly), Postgres, домен у CORS.
+- [ ] Postgres на Render для постійних даних; власний домен у CORS.
 - [ ] (Опц.) контроль доступних слотів по майстру/даті на фронті (підсвічувати зайняте).
 
 ---
