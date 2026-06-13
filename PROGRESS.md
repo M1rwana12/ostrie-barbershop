@@ -148,10 +148,24 @@
 - [x] Стилі `.admin*` в `index.css` у тон бренду. Білд проходить (vite build OK).
 - Доступ: відкрити `…/ostrie-barbershop/#/admin`, ввести `ADMIN_TOKEN` (значення з Render → Environment).
 
+## I18N UA/EN — 2026-06-14
+- [x] Легка i18n без залежностей: `src/lib/i18n.jsx` — `LanguageProvider` (Context),
+  хук `useI18n()` → `{ lang, setLang, t }`. `t('booking.fName')` (dot-path), підстановка
+  `{msg}` через vars, фолбек на ключ. Мова персиститься в `localStorage` (`ostrie_lang`,
+  дефолт `uk`); виставляє `document.documentElement.lang`. Обгортка в `main.jsx`.
+- [x] Повний словник uk/en для всіх секцій (nav, hero, marquee, services, barbers,
+  gallery, about, reviews, booking, footer, preloader, admin). Заголовки з `<br/>` —
+  масивами рядків; плюралізація «рік/роки/років» (uk) та year/years (en).
+- [x] Перемикач **UA/EN** у Nav (desktop `.nav-cta` + мобільне меню), стилі `.lang-toggle`.
+  Фікс: `.nav-cta { display:flex }` поставлено ДО mobile media-query, щоб та лишилась чинною.
+- [x] Усі 12 компонентів читають `t()`. Білд проходить (vite build OK, 49 модулів).
+- Обмеження: контент із БД (назви/описи послуг, імена/спеціалізації майстрів) — лише
+  українською (бекенд без i18n). Статичні meta/JSON-LD в `index.html` теж не перекладаються.
+
 ## ЗАПЛАНОВАНО / TODO
 - [ ] Підтвердити/замінити стокові фото та hero-відео на власні (сюжет ↔ підпис).
 - [ ] Звірити реальні соц-акаунти, телефон, адресу, координати карти.
-- [ ] i18n UA/EN перемикач.
+- [ ] (Опц.) i18n контенту з БД та meta/JSON-LD (потребує бекенд-перекладів).
 - [ ] PWA (manifest + service worker), офлайн-кеш статичних ассетів.
 - [ ] Тости/нотифікації замість inline-повідомлень; skeleton-loaders.
 - [ ] Rate-limit на POST /appointments (анти-спам), honeypot у формі.

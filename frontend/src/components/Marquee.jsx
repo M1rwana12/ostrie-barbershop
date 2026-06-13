@@ -1,10 +1,12 @@
-const WORDS = ['Стрижка', 'Борода', 'Королівське гоління', 'Камуфляж сивини', 'Дитяча стрижка', 'Стайлінг']
+import { useI18n } from '../lib/i18n'
 
 export default function Marquee() {
+  const { t } = useI18n()
+  const words = t('marquee')
   return (
     <div className="marquee" aria-hidden="true">
       <div className="marquee-track">
-        {[...WORDS, ...WORDS].map((w, i) => (
+        {[...words, ...words].map((w, i) => (
           <span key={i}>{w}</span>
         ))}
       </div>

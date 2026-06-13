@@ -166,6 +166,7 @@ section { position: relative; }
 .nav-links a::after { content: ''; position: absolute; left: 0; bottom: 0; width: 0; height: 1px; background: var(--accent); transition: width 0.35s var(--ease); }
 .nav-links a:hover { color: var(--ink); }
 .nav-links a:hover::after { width: 100%; }
+.nav-cta { display: flex; align-items: center; gap: 0.9rem; }
 .nav-cta .btn { --pad-y: 0.82em; padding-inline: 1.5em; }
 .burger { display: none; width: 44px; height: 44px; flex-direction: column; justify-content: center; gap: 6px; align-items: flex-end; }
 .burger span { display: block; height: 2px; width: 26px; background: var(--ink); transition: transform 0.4s var(--ease), opacity 0.3s, width 0.4s var(--ease); }
@@ -504,6 +505,19 @@ section { position: relative; }
 @media (max-width: 480px) {
   .gallery { columns: 1; }
 }
+
+/* ─────────────  Перемикач мови UA/EN  ───────────── */
+.lang-toggle { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+.lang-toggle button {
+  appearance: none; background: transparent; border: none; cursor: pointer;
+  font-family: 'Manrope', sans-serif; font-weight: 700; font-size: 0.72rem;
+  letter-spacing: 0.06em; color: var(--ink-dim); padding: 0.34rem 0.62rem;
+  transition: color 0.25s var(--ease), background 0.25s var(--ease);
+}
+.lang-toggle button:hover { color: var(--ink); }
+.lang-toggle button.active { background: var(--accent); color: var(--bg); }
+.lang-toggle--mobile { margin-top: 2rem; align-self: flex-start; }
+.lang-toggle--mobile button { font-size: 0.9rem; padding: 0.5rem 0.95rem; }
 
 /* ─────────────  Адмін-панель (#/admin)  ───────────── */
 .admin { min-height: 100vh; display: flex; flex-direction: column; }

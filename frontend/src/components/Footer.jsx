@@ -1,12 +1,14 @@
 import Logo from './Logo'
+import { useI18n } from '../lib/i18n'
 
 export default function Footer() {
+  const { t } = useI18n()
   return (
     <footer className="footer" id="contacts">
       <div className="map-strip">
         <iframe
           className="map-frame"
-          title="Мапа розташування барбершопу OSTRIE"
+          title={t('footer.mapTitle')}
           src="https://www.google.com/maps?q=вул.+Січових+Стрільців,+14,+Київ&z=16&output=embed"
           loading="lazy"
           referrerPolicy="no-referrer-when-downgrade"
@@ -16,7 +18,7 @@ export default function Footer() {
       <div className="wrap footer-top">
         <div className="footer-brand">
           <div className="brand"><Logo />OSTRIE<span className="dot">.</span></div>
-          <p>Преміальний міський барбершоп. Точність, характер і повага до часу кожного клієнта. На вістрі стилю з 2017 року.</p>
+          <p>{t('footer.desc')}</p>
           <div className="socials">
             <a href="https://instagram.com/ostrie.barbershop" target="_blank" rel="noopener noreferrer" aria-label="Instagram OSTRIE">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><rect x="2" y="2" width="20" height="20" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" /></svg>
@@ -34,35 +36,35 @@ export default function Footer() {
         </div>
 
         <div className="footer-col">
-          <h4>Навігація</h4>
+          <h4>{t('footer.navTitle')}</h4>
           <ul>
-            <li><a href="#services">Послуги та ціни</a></li>
-            <li><a href="#masters">Майстри</a></li>
-            <li><a href="#gallery">Наші роботи</a></li>
-            <li><a href="#about">Про нас</a></li>
-            <li><a href="#reviews">Відгуки</a></li>
-            <li><a href="#booking">Онлайн-запис</a></li>
+            <li><a href="#services">{t('footer.linkServices')}</a></li>
+            <li><a href="#masters">{t('footer.linkMasters')}</a></li>
+            <li><a href="#gallery">{t('footer.linkGallery')}</a></li>
+            <li><a href="#about">{t('footer.linkAbout')}</a></li>
+            <li><a href="#reviews">{t('footer.linkReviews')}</a></li>
+            <li><a href="#booking">{t('footer.linkBooking')}</a></li>
           </ul>
         </div>
 
         <div className="footer-col">
-          <h4>Контакти</h4>
+          <h4>{t('footer.contactsTitle')}</h4>
           <ul>
             <li><a href="tel:+380441234567">+38 (044) 123-45-67</a></li>
             <li><a href="mailto:hello@ostrie.com">hello@ostrie.com</a></li>
-            <li>вул. Січових Стрільців, 14, Київ</li>
+            <li>{t('footer.address')}</li>
           </ul>
-          <h4 style={{ marginTop: '1.8rem' }}>Графік роботи</h4>
+          <h4 style={{ marginTop: '1.8rem' }}>{t('footer.scheduleTitle')}</h4>
           <ul>
-            <li className="hours-row"><span>Пн — Пт</span><span>10:00 — 21:00</span></li>
-            <li className="hours-row"><span>Сб — Нд</span><span>10:00 — 20:00</span></li>
+            <li className="hours-row"><span>{t('footer.weekdays')}</span><span>10:00 — 21:00</span></li>
+            <li className="hours-row"><span>{t('footer.weekend')}</span><span>10:00 — 20:00</span></li>
           </ul>
         </div>
       </div>
 
       <div className="wrap footer-bottom">
-        <span>© 2017—2026 OSTRIE. Усі права захищено.</span>
-        <span>Зроблено на вістрі · <a href="#top">Догори ↑</a></span>
+        <span>{t('footer.rights')}</span>
+        <span>{t('footer.madeBy')} · <a href="#top">{t('footer.toTop')}</a></span>
       </div>
     </footer>
   )

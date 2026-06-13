@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
+import { useI18n } from '../lib/i18n'
 
 export default function Preloader() {
+  const { t } = useI18n()
   const [done, setDone] = useState(false)
   const [gone, setGone] = useState(false)
 
@@ -40,7 +42,7 @@ export default function Preloader() {
         <div className="pl-word">
           <span>O</span><span>S</span><span className="ac">T</span><span>R</span><span>I</span><span>E</span>
         </div>
-        <div className="pl-sub">На вістрі стилю</div>
+        <div className="pl-sub">{t('preloader.sub')}</div>
       </div>
     </div>
   )

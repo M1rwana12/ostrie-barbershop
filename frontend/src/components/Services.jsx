@@ -1,26 +1,36 @@
-const fmtDur = (m) => {
-  const h = Math.floor(m / 60)
-  const mm = m % 60
-  return `⏱ ${h ? `${h} год ` : ''}${mm ? `${mm} хв` : ''}`.trim()
-}
+import { useI18n } from '../lib/i18n'
 
 export default function Services({ services, loading, error }) {
+  const { t } = useI18n()
+
+  const fmtDur = (m) => {
+    const h = Math.floor(m / 60)
+    const mm = m % 60
+    return `⏱ ${h ? `${h} ${t('booking.unitH')} ` : ''}${mm ? `${mm} ${t('booking.unitMin')}` : ''}`.trim()
+  }
+
+  const title = t('services.title')
+
   return (
     <section className="section-pad" id="services">
       <div className="wrap">
         <div className="sec-head">
           <div className="titles">
-            <span className="kicker">01 — Прайс</span>
-            <h2 className="display" data-reveal>Послуги<br />та ціни</h2>
+            <span className="kicker">{t('services.kicker')}</span>
+            <h2 className="display" data-reveal>
+              {title.map((line, i) => (
+                <span key={i}>{line}{i < title.length - 1 && <br />}</span>
+              ))}
+            </h2>
             <p data-reveal data-delay="1">
-              Чесний прайс без прихованих доплат. Кожна процедура — з консультацією, гарячим рушником та напоєм за рахунок закладу.
+              {t('services.intro')}
             </p>
           </div>
           <span className="sec-no" aria-hidden="true">/01</span>
         </div>
 
-        {loading && <p className="state-note">Завантажуємо прайс…</p>}
-        {error && <p className="state-note error">Не вдалося завантажити послуги. Перевірте, що бекенд запущено.</p>}
+        {loading && <p className="state-note">{t('services.loading')}</p>}
+        {error && <p className="state-note error">{t('services.error')}</p>}
 
         {!loading && !error && (
           <div className="services-list">
@@ -32,7 +42,7 @@ export default function Services({ services, loading, error }) {
                   {s.description && <p>{s.description}</p>}
                 </div>
                 <span className="dur">{fmtDur(s.duration)}</span>
-                <span className="price">{s.price}<small> грн</small></span>
+                <span className="price">{s.price}<small> {t('services.currency')}</small></span>
               </article>
             ))}
           </div>

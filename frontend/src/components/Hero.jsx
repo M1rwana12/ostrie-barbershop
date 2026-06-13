@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { HERO, HERO_VIDEO } from '../lib/images'
+import { useI18n } from '../lib/i18n'
 
 export default function Hero() {
+  const { t } = useI18n()
   // Для prefers-reduced-motion відео не вантажимо — показуємо лише фото.
   const [useVideo] = useState(
     () => !window.matchMedia('(prefers-reduced-motion: reduce)').matches,
@@ -31,24 +33,24 @@ export default function Hero() {
 
       <div className="wrap hero-inner">
         <div className="hero-top">
-          <p className="hero-meta">Барбершоп №1<br />вул. Січових Стрільців, 14<br />Київ</p>
-          <p className="hero-meta" style={{ textAlign: 'right' }}>Пн–Нд · 10:00—21:00<br />Запис онлайн 24/7</p>
+          <p className="hero-meta">{t('hero.badge')}<br />{t('hero.address')}<br />{t('hero.city')}</p>
+          <p className="hero-meta" style={{ textAlign: 'right' }}>{t('hero.hours')}<br />{t('hero.online')}</p>
         </div>
 
         <h1 className="display hero-title" data-reveal>OS<span className="blade">T</span>RIE</h1>
 
         <div className="hero-tagline">
-          <p className="lead" data-reveal data-delay="1">На <em>вістрі</em> стилю</p>
+          <p className="lead" data-reveal data-delay="1">{t('hero.taglinePre')}<em>{t('hero.taglineEm')}</em>{t('hero.taglinePost')}</p>
           <p className="sub" data-reveal data-delay="2">
-            Преміальний міський барбершоп для чоловіків, які цінують точність і характер. Кожен різ — впевнений.
+            {t('hero.sub')}
           </p>
           <div className="hero-actions" data-reveal data-delay="3">
-            <a href="#booking" className="btn">Записатись <span className="arrow">↗</span></a>
-            <a href="#services" className="btn btn--ghost">Послуги та ціни</a>
+            <a href="#booking" className="btn">{t('hero.ctaBook')} <span className="arrow">↗</span></a>
+            <a href="#services" className="btn btn--ghost">{t('hero.ctaServices')}</a>
           </div>
         </div>
 
-        <div className="scroll-cue" aria-hidden="true">Гортай<span className="line" /></div>
+        <div className="scroll-cue" aria-hidden="true">{t('hero.scroll')}<span className="line" /></div>
       </div>
     </section>
   )

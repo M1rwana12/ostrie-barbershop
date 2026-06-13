@@ -1,36 +1,44 @@
 import { GALLERY, BEFORE, AFTER } from '../lib/images'
+import { useI18n } from '../lib/i18n'
 
 const CLASSES = ['g-tall', 'g-sq', 'g-wide', 'g-sq', 'g-tall', 'g-wide', 'g-sq', 'g-tall', 'g-wide']
-const CAPTIONS = ['Фейд + борода', 'Класика', 'До / Після', 'Текстурний кроп', 'Гоління', 'Андеркат', 'Борода', 'Помпадур', 'Камуфляж сивини']
 
 export default function Gallery() {
+  const { t } = useI18n()
+  const captions = t('gallery.captions')
+  const title = t('gallery.title')
+
   return (
     <section className="section-pad" id="gallery">
       <div className="wrap">
         <div className="sec-head">
           <div className="titles">
-            <span className="kicker">03 — Портфоліо</span>
-            <h2 className="display" data-reveal>Наші<br />роботи</h2>
-            <p data-reveal data-delay="1">Реальні клієнти, реальні трансформації. До та після — без фотошопу.</p>
+            <span className="kicker">{t('gallery.kicker')}</span>
+            <h2 className="display" data-reveal>
+              {title.map((line, i) => (
+                <span key={i}>{line}{i < title.length - 1 && <br />}</span>
+              ))}
+            </h2>
+            <p data-reveal data-delay="1">{t('gallery.intro')}</p>
           </div>
           <span className="sec-no" aria-hidden="true">/03</span>
         </div>
 
         {/* Сигнатурний слайдер «До / Після» з лезвом */}
         <div className="ba-wrap" data-reveal>
-          <span className="ba-label">Трансформація — потягни лезо</span>
+          <span className="ba-label">{t('gallery.baLabel')}</span>
           <div className="ba">
             <div className="ba-layer ba-after" style={{ backgroundImage: `url(${AFTER})` }}>
-              <span className="ba-tag">Після</span>
+              <span className="ba-tag">{t('gallery.after')}</span>
             </div>
             <div className="ba-layer ba-before" style={{ backgroundImage: `url(${BEFORE})` }}>
-              <span className="ba-tag">До</span>
+              <span className="ba-tag">{t('gallery.before')}</span>
             </div>
             <div
               className="ba-handle"
               role="slider"
               tabIndex={0}
-              aria-label="Повзунок до/після"
+              aria-label={t('gallery.sliderLabel')}
               aria-valuemin={0}
               aria-valuemax={100}
               aria-valuenow={50}
@@ -41,15 +49,15 @@ export default function Gallery() {
                 </svg>
               </span>
             </div>
-            <span className="ba-hint" aria-hidden="true">← перетягни →</span>
+            <span className="ba-hint" aria-hidden="true">{t('gallery.hint')}</span>
           </div>
         </div>
 
         <div className="gallery" data-reveal>
           {GALLERY.map((src, i) => (
             <figure className={CLASSES[i]} key={i}>
-              <img src={src} alt={CAPTIONS[i]} loading="lazy" />
-              <figcaption>{CAPTIONS[i]}</figcaption>
+              <img src={src} alt={captions[i]} loading="lazy" />
+              <figcaption>{captions[i]}</figcaption>
             </figure>
           ))}
         </div>
