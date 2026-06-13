@@ -3,8 +3,9 @@
 const u = (id, w, q = 70) =>
   `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&q=${q}`
 
-// Hero — атмосферне фото (анімується Ken Burns)
+// Hero — атмосферне фото (постер/фолбек) + фонове відео (Mixkit, безкоштовна ліцензія)
 export const HERO = u('1585747860715-2ba37e788b70', 1920, 75)
+export const HERO_VIDEO = 'https://assets.mixkit.co/videos/36752/36752-720.mp4'
 
 // Майстри (портрети)
 export const MASTERS = [

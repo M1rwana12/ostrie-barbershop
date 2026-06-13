@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import Logo from './Logo'
 
 const LINKS = [
   ['#services', 'Послуги', '01'],
@@ -33,7 +34,7 @@ export default function Nav() {
       <header className={`header${scrolled ? ' scrolled' : ''}`}>
         <div className="wrap nav">
           <a href="#top" className="brand" aria-label="OSTRIE — на головну">
-            OSTRIE<span className="dot">.</span>
+            <Logo />OSTRIE<span className="dot">.</span>
           </a>
           <nav className="nav-links" aria-label="Головна навігація">
             {LINKS.slice(0, 6).map(([href, label]) => (

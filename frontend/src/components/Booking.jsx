@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { createAppointment } from '../lib/api'
+import { createAppointment, getAvailability } from '../lib/api'
 
 const TIMES = ['10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00']
 const todayISO = () => new Date().toISOString().split('T')[0]
@@ -17,6 +17,29 @@ export default function Booking({ services, barbers }) {
   const [topError, setTopError] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [taken, setTaken] = useState([])
+
+  // Підтягуємо зайняті слоти, коли обрано конкретного майстра + дату
+  useEffect(() => {
+    if (!form.barber_id || !form.date) {
+      setTaken([])
+      return
+    }
+    let alive = true
+    getAvailability(form.barber_id, form.date)
+      .then((d) => alive && setTaken(d.taken || []))
+      .catch(() => alive && setTaken([]))
+    return () => {
+      alive = false
+    }
+  }, [form.barber_id, form.date])
+
+  // Якщо вже обраний час став зайнятим — скидаємо його
+  useEffect(() => {
+    if (form.time && taken.includes(form.time)) {
+      setForm((f) => ({ ...f, time: '' }))
+    }
+  }, [taken, form.time])
 
   // первинне заповнення конструктора: позначаємо першу послугу
   useEffect(() => {
@@ -224,7 +247,14 @@ export default function Booking({ services, barbers }) {
                     <label htmlFor="time">Час <span className="req">*</span></label>
                     <select id="time" value={form.time} onChange={(e) => setField('time', e.target.value)}>
                       <option value="" disabled>Оберіть час</option>
-                      {TIMES.map((t) => <option key={t}>{t}</option>)}
+                      {TIMES.map((t) => {
+                        const busy = taken.includes(t)
+                        return (
+                          <option key={t} value={t} disabled={busy}>
+                            {t}{busy ? ' — зайнято' : ''}
+                          </option>
+                        )
+                      })}
                     </select>
                     <span className="msg">{errors.time}</span>
                   </div>

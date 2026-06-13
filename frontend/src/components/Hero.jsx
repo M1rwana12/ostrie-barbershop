@@ -1,10 +1,30 @@
-import { HERO } from '../lib/images'
+import { useState } from 'react'
+import { HERO, HERO_VIDEO } from '../lib/images'
 
 export default function Hero() {
+  // Для prefers-reduced-motion відео не вантажимо — показуємо лише фото.
+  const [useVideo] = useState(
+    () => !window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+  )
+
   return (
     <section className="hero" aria-label="OSTRIE барбершоп" id="top">
       <div className="hero-media" aria-hidden="true">
-        <img className="hero-photo" src={HERO} alt="" fetchpriority="high" />
+        {useVideo ? (
+          <video
+            className="hero-video"
+            poster={HERO}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+          >
+            <source src={HERO_VIDEO} type="video/mp4" />
+          </video>
+        ) : (
+          <img className="hero-photo" src={HERO} alt="" fetchpriority="high" />
+        )}
         <div className="hero-scrim" />
       </div>
       <div className="hero-grid-lines" aria-hidden="true" />

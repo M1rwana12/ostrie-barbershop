@@ -1,3 +1,5 @@
+import Logo from './Logo'
+
 export default function Footer() {
   return (
     <footer className="footer" id="contacts">
@@ -13,7 +15,7 @@ export default function Footer() {
 
       <div className="wrap footer-top">
         <div className="footer-brand">
-          <div className="brand">OSTRIE<span className="dot">.</span></div>
+          <div className="brand"><Logo />OSTRIE<span className="dot">.</span></div>
           <p>Преміальний міський барбершоп. Точність, характер і повага до часу кожного клієнта. На вістрі стилю з 2017 року.</p>
           <div className="socials">
             <a href="https://instagram.com/ostrie.barbershop" target="_blank" rel="noopener noreferrer" aria-label="Instagram OSTRIE">

@@ -58,5 +58,7 @@ async function request(path, options = {}, attempt = 0) {
 
 export const getServices = () => request('/services')
 export const getBarbers = () => request('/barbers')
+export const getAvailability = (barberId, date) =>
+  request(`/availability?barber_id=${encodeURIComponent(barberId)}&date=${encodeURIComponent(date)}`)
 export const createAppointment = (payload) =>
   request('/appointments', { method: 'POST', body: JSON.stringify(payload) })

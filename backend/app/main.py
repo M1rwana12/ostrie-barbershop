@@ -39,6 +39,17 @@ def list_barbers(db: Session = Depends(get_db)):
     return db.query(models.Barber).order_by(models.Barber.id).all()
 
 
+@app.get("/availability", tags=["booking"])
+def availability(barber_id: int, date: str, db: Session = Depends(get_db)) -> dict:
+    """Зайняті слоти конкретного майстра на дату — щоб фронт підсвічував недоступний час."""
+    rows = (
+        db.query(models.Appointment.time)
+        .filter_by(barber_id=barber_id, date=date)
+        .all()
+    )
+    return {"barber_id": barber_id, "date": date, "taken": sorted(r[0] for r in rows)}
+
+
 @app.post(
     "/appointments",
     response_model=schemas.AppointmentOut,
