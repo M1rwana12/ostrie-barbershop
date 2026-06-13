@@ -1,6 +1,32 @@
 import { useEffect, useState } from 'react'
-import { getMe, changePassword, twofaSetup, twofaEnable, twofaDisable } from '../lib/api'
+import {
+  getMe, changePassword, twofaSetup, twofaEnable, twofaDisable, twofaRegenBackup,
+} from '../lib/api'
 import { useI18n } from '../lib/i18n'
+
+function BackupCodes({ codes }) {
+  const { t } = useI18n()
+  const [copied, setCopied] = useState(false)
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(codes.join('\n'))
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch { /* ignore */ }
+  }
+  return (
+    <div className="backup-panel">
+      <h4>{t('admin.backupTitle')}</h4>
+      <ul className="backup-list">
+        {codes.map((c) => <li key={c}>{c}</li>)}
+      </ul>
+      <p className="an-note">{t('admin.backupSaveHint')}</p>
+      <button type="button" className="btn btn--ghost" onClick={copy}>
+        {copied ? t('admin.backupCopied') : t('admin.backupCopy')}
+      </button>
+    </div>
+  )
+}
 
 export default function AdminSecurity({ onUnauthorized }) {
   const { t } = useI18n()
@@ -14,19 +40,27 @@ export default function AdminSecurity({ onUnauthorized }) {
 
   // 2FA
   const [enabled, setEnabled] = useState(false)
-  const [setup, setSetup] = useState(null) // { qr_svg, secret, otpauth_uri }
+  const [remaining, setRemaining] = useState(0)
+  const [setup, setSetup] = useState(null) // { qr_svg, secret }
   const [code, setCode] = useState('')
   const [twoBusy, setTwoBusy] = useState(false)
   const [twoMsg, setTwoMsg] = useState('')
   const [twoErr, setTwoErr] = useState('')
   const [disabling, setDisabling] = useState(false)
+  const [regen, setRegen] = useState(false)
+  const [freshCodes, setFreshCodes] = useState(null) // показати один раз
 
   const guard = (err) => { if (err.status === 401) { onUnauthorized(); return true } return false }
 
-  useEffect(() => {
-    getMe().then((u) => setEnabled(Boolean(u.totp_enabled))).catch((e) => guard(e))
-    // eslint-disable-next-line
-  }, [])
+  const refreshMe = async () => {
+    try {
+      const u = await getMe()
+      setEnabled(Boolean(u.totp_enabled))
+      setRemaining(u.backup_codes_remaining || 0)
+    } catch (e) { guard(e) }
+  }
+
+  useEffect(() => { refreshMe() /* eslint-disable-next-line */ }, [])
 
   const onChangePwd = async (e) => {
     e.preventDefault()
@@ -41,10 +75,9 @@ export default function AdminSecurity({ onUnauthorized }) {
   }
 
   const startSetup = async () => {
-    setTwoMsg(''); setTwoErr(''); setTwoBusy(true)
+    setTwoMsg(''); setTwoErr(''); setFreshCodes(null); setTwoBusy(true)
     try {
-      setSetup(await twofaSetup())
-      setCode('')
+      setSetup(await twofaSetup()); setCode('')
     } catch (err) {
       if (guard(err)) return
       setTwoErr(err.message)
@@ -55,8 +88,10 @@ export default function AdminSecurity({ onUnauthorized }) {
     e.preventDefault()
     setTwoErr(''); setTwoBusy(true)
     try {
-      await twofaEnable(code)
+      const res = await twofaEnable(code)
       setEnabled(true); setSetup(null); setCode(''); setTwoMsg(t('admin.twofaOn'))
+      setFreshCodes(res.backup_codes || null)
+      await refreshMe()
     } catch (err) {
       if (guard(err)) return
       setTwoErr(err.message)
@@ -68,7 +103,21 @@ export default function AdminSecurity({ onUnauthorized }) {
     setTwoErr(''); setTwoBusy(true)
     try {
       await twofaDisable(code)
-      setEnabled(false); setDisabling(false); setCode(''); setTwoMsg(t('admin.twofaOff'))
+      setEnabled(false); setDisabling(false); setCode(''); setFreshCodes(null); setTwoMsg(t('admin.twofaOff'))
+      await refreshMe()
+    } catch (err) {
+      if (guard(err)) return
+      setTwoErr(err.message)
+    } finally { setTwoBusy(false) }
+  }
+
+  const confirmRegen = async (e) => {
+    e.preventDefault()
+    setTwoErr(''); setTwoBusy(true)
+    try {
+      const res = await twofaRegenBackup(code)
+      setRegen(false); setCode(''); setFreshCodes(res.backup_codes || null)
+      await refreshMe()
     } catch (err) {
       if (guard(err)) return
       setTwoErr(err.message)
@@ -117,6 +166,9 @@ export default function AdminSecurity({ onUnauthorized }) {
           {twoErr && <div className="form-error-top" role="alert">{twoErr}</div>}
           {twoMsg && <div className="form-ok" role="status">{twoMsg}</div>}
 
+          {/* Показ свіжих backup-кодів (один раз) */}
+          {freshCodes && <BackupCodes codes={freshCodes} />}
+
           {!enabled && !setup && (
             <button type="button" className="btn" onClick={startSetup} disabled={twoBusy}>
               {t('admin.enable2fa')} <span className="arrow">↗</span>
@@ -139,10 +191,33 @@ export default function AdminSecurity({ onUnauthorized }) {
             </form>
           )}
 
-          {enabled && !disabling && (
-            <button type="button" className="btn btn--ghost" onClick={() => { setDisabling(true); setTwoMsg(''); setCode('') }}>
-              {t('admin.disable2fa')}
-            </button>
+          {enabled && (
+            <p className="backup-remaining">{t('admin.backupRemaining', { n: remaining })}</p>
+          )}
+
+          {enabled && !disabling && !regen && (
+            <div className="sec-actions">
+              <button type="button" className="btn btn--ghost" onClick={() => { setRegen(true); setCode(''); setTwoMsg(''); setFreshCodes(null) }}>
+                {t('admin.backupRegen')}
+              </button>
+              <button type="button" className="btn btn--ghost" onClick={() => { setDisabling(true); setCode(''); setTwoMsg(''); setFreshCodes(null) }}>
+                {t('admin.disable2fa')}
+              </button>
+            </div>
+          )}
+
+          {enabled && regen && (
+            <form className="form" onSubmit={confirmRegen}>
+              <p className="an-note">{t('admin.backupRegenHint')}</p>
+              <div className="field">
+                <label htmlFor="regen-code">{t('admin.enterCode')}</label>
+                <input id="regen-code" type="text" inputMode="numeric" autoComplete="one-time-code"
+                  value={code} onChange={(e) => setCode(e.target.value)} />
+              </div>
+              <button type="submit" className="btn" disabled={twoBusy || code.length < 6}>
+                {t('admin.backupRegen')} <span className="arrow">↗</span>
+              </button>
+            </form>
           )}
 
           {enabled && disabling && (

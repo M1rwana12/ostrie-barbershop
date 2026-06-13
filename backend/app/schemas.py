@@ -117,6 +117,7 @@ class UserOut(BaseModel):
     email: str
     role: str
     totp_enabled: bool = False
+    backup_codes_remaining: int = 0
     created_at: str | None = None
 
 

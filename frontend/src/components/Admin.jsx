@@ -113,7 +113,7 @@ export default function Admin() {
                 <label htmlFor="admin-2fa">{t('admin.loginCode')}</label>
                 <input id="admin-2fa" type="text" inputMode="numeric" autoComplete="one-time-code" autoFocus
                   placeholder="000000" value={totpCode} onChange={(e) => setTotpCode(e.target.value)} />
-                <span className="msg" style={{ color: 'var(--ink-dim)' }}>{t('admin.login2faHint')}</span>
+                <span className="msg" style={{ color: 'var(--ink-dim)' }}>{t('admin.login2faHint')} · {t('admin.loginCodeHint')}</span>
               </div>
             )}
             <button type="submit" className="btn" disabled={busy || !email.trim() || !password || (need2fa && totpCode.length < 6)}>

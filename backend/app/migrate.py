@@ -36,3 +36,6 @@ def run_migrations() -> None:
             conn.execute(text(
                 f"ALTER TABLE users ADD COLUMN totp_enabled BOOLEAN DEFAULT {default}"
             ))
+    if not _has_column("users", "backup_codes"):
+        with engine.begin() as conn:
+            conn.execute(text("ALTER TABLE users ADD COLUMN backup_codes TEXT"))

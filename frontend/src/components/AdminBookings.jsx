@@ -91,13 +91,13 @@ export default function AdminBookings({ canEdit, onUnauthorized }) {
             <tbody>
               {items.map((a) => (
                 <tr key={a.id} className={`st-${a.status}`}>
-                  <td>{a.id}</td>
-                  <td className="nowrap"><b>{a.date}</b> · {a.time}</td>
-                  <td>{a.name}</td>
-                  <td className="nowrap"><a href={`tel:${a.phone}`}>{a.phone}</a></td>
-                  <td>{svcName[a.service_id] || `#${a.service_id}`}</td>
-                  <td>{a.barber_id ? (barbName[a.barber_id] || `#${a.barber_id}`) : t('admin.anyBarber')}</td>
-                  <td>
+                  <td data-label="#">{a.id}</td>
+                  <td className="nowrap" data-label={t('admin.colDate')}><b>{a.date}</b> · {a.time}</td>
+                  <td data-label={t('admin.colClient')}>{a.name}</td>
+                  <td className="nowrap" data-label={t('admin.colPhone')}><a href={`tel:${a.phone}`}>{a.phone}</a></td>
+                  <td data-label={t('admin.colService')}>{svcName[a.service_id] || `#${a.service_id}`}</td>
+                  <td data-label={t('admin.colBarber')}>{a.barber_id ? (barbName[a.barber_id] || `#${a.barber_id}`) : t('admin.anyBarber')}</td>
+                  <td data-label={t('admin.colStatus')}>
                     {canEdit ? (
                       <select className={`status-sel st-${a.status}`} value={a.status}
                         onChange={(e) => changeStatus(a.id, e.target.value)}>
@@ -107,7 +107,7 @@ export default function AdminBookings({ canEdit, onUnauthorized }) {
                       <span className={`status-badge st-${a.status}`}>{statusLabel(a.status)}</span>
                     )}
                   </td>
-                  <td className="nowrap muted">{fmtCreated(a.created_at, t('admin.locale'))}</td>
+                  <td className="nowrap muted" data-label={t('admin.colCreated')}>{fmtCreated(a.created_at, t('admin.locale'))}</td>
                 </tr>
               ))}
             </tbody>

@@ -100,10 +100,10 @@ export default function AdminUsers({ currentEmail, onUnauthorized }) {
             <tbody>
               {users.map((u) => (
                 <tr key={u.id}>
-                  <td>{u.id}</td>
-                  <td>{u.email}{u.email === currentEmail && <span className="muted"> · {t('admin.you')}</span>}</td>
-                  <td>{roleLabel(u.role)}</td>
-                  <td className="nowrap">
+                  <td data-label="#">{u.id}</td>
+                  <td data-label={t('admin.uEmail')}>{u.email}{u.email === currentEmail && <span className="muted"> · {t('admin.you')}</span>}</td>
+                  <td data-label={t('admin.uRole')}>{roleLabel(u.role)}</td>
+                  <td className="nowrap" data-label="">
                     {u.email !== currentEmail && (
                       <button type="button" className="link-danger" onClick={() => onDelete(u)}>{t('admin.del')}</button>
                     )}

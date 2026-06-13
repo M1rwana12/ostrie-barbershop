@@ -125,6 +125,11 @@ const dict = {
       enterCode: 'Введіть 6-значний код із застосунку', confirm: 'Підтвердити',
       twofaOn: '2FA увімкнено ✓', twofaOff: '2FA вимкнено ✓',
       login2faHint: 'Введіть код із застосунку-автентифікатора', loginCode: 'Код 2FA',
+      loginCodeHint: 'або один із backup-кодів',
+      backupTitle: 'Резервні коди', backupRemaining: 'Залишилось кодів: {n}',
+      backupSaveHint: 'Збережіть ці коди в надійному місці. Кожен працює один раз і замінює код 2FA, якщо ви втратите телефон. Більше вони не покажуться.',
+      backupCopy: 'Скопіювати', backupCopied: 'Скопійовано ✓', backupDone: 'Я зберіг коди',
+      backupRegen: 'Перегенерувати коди', backupRegenHint: 'Введіть поточний код 2FA, щоб згенерувати нові (старі перестануть діяти).',
     },
   },
 
@@ -246,6 +251,11 @@ const dict = {
       enterCode: 'Enter the 6-digit code from the app', confirm: 'Confirm',
       twofaOn: '2FA enabled ✓', twofaOff: '2FA disabled ✓',
       login2faHint: 'Enter the code from your authenticator app', loginCode: '2FA code',
+      loginCodeHint: 'or one of your backup codes',
+      backupTitle: 'Backup codes', backupRemaining: 'Codes left: {n}',
+      backupSaveHint: 'Store these codes somewhere safe. Each works once and replaces your 2FA code if you lose your phone. They won’t be shown again.',
+      backupCopy: 'Copy', backupCopied: 'Copied ✓', backupDone: 'I saved the codes',
+      backupRegen: 'Regenerate codes', backupRegenHint: 'Enter your current 2FA code to generate new ones (old ones stop working).',
     },
   },
 }

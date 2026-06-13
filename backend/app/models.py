@@ -1,7 +1,7 @@
 """ORM-моделі: послуги, майстри, записи, користувачі."""
 from datetime import datetime, timezone
 
-from sqlalchemy import ForeignKey, String
+from sqlalchemy import ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .database import Base
@@ -64,6 +64,16 @@ class User(Base):
     role: Mapped[str] = mapped_column(String(20), default=ROLE_ADMIN)  # super_admin/admin/barber
     totp_secret: Mapped[str | None] = mapped_column(String(64), nullable=True, default=None)
     totp_enabled: Mapped[bool] = mapped_column(default=False)
+    # JSON-масив bcrypt-хешів одноразових backup-кодів для 2FA
+    backup_codes: Mapped[str | None] = mapped_column(Text, nullable=True, default=None)
     created_at: Mapped[str] = mapped_column(
         String(40), default=lambda: datetime.now(timezone.utc).isoformat()
     )
+
+    @property
+    def backup_codes_remaining(self) -> int:
+        import json
+        try:
+            return len(json.loads(self.backup_codes or "[]"))
+        except ValueError:
+            return 0

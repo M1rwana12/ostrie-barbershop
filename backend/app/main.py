@@ -7,7 +7,10 @@ from sqlalchemy.orm import Session
 
 from . import models, schemas
 from .auth import (
+    consume_backup_code,
     create_access_token,
+    generate_backup_codes,
+    hash_backup_codes,
     hash_password,
     make_totp_secret,
     qr_svg,
@@ -27,6 +30,10 @@ from .telegram import notify_new_appointment
 # Анти-спам POST /appointments: не більше N записів з одного IP за вікно
 RATE_LIMIT = 5
 RATE_WINDOW_SECONDS = 600  # 10 хвилин
+
+# Анти-брутфорс /auth/login: не більше N спроб з одного IP за вікно
+LOGIN_RATE_LIMIT = 10
+LOGIN_WINDOW_SECONDS = 300  # 5 хвилин
 
 # Створюємо таблиці, доганяємо схему й наповнюємо seed-даними при старті
 Base.metadata.create_all(bind=engine)
@@ -173,7 +180,14 @@ def update_status(
 
 # ─────────────  Авторизація  ─────────────
 @app.post("/auth/login", response_model=schemas.TokenOut, tags=["auth"])
-def login(payload: schemas.LoginIn, db: Session = Depends(get_db)):
+def login(payload: schemas.LoginIn, request: Request, db: Session = Depends(get_db)):
+    # Анти-брутфорс за IP
+    if is_rate_limited(f"login:{client_ip(request)}", LOGIN_RATE_LIMIT, LOGIN_WINDOW_SECONDS):
+        raise HTTPException(
+            status_code=429,
+            detail="Забагато спроб входу. Зачекайте кілька хвилин.",
+        )
+
     email = payload.email.strip().lower()
     user = db.query(models.User).filter_by(email=email).first()
     if user is None or not verify_password(payload.password, user.password_hash):
@@ -184,7 +198,10 @@ def login(payload: schemas.LoginIn, db: Session = Depends(get_db)):
         if not payload.totp_code:
             # сигнал фронту показати поле коду (детальом, не текстом помилки)
             raise HTTPException(status_code=401, detail="2fa_required")
-        if not verify_totp(user.totp_secret or "", payload.totp_code):
+        code_ok = verify_totp(user.totp_secret or "", payload.totp_code) or consume_backup_code(
+            user, payload.totp_code, db
+        )
+        if not code_ok:
             raise HTTPException(status_code=401, detail="Невірний код підтвердження")
 
     return schemas.TokenOut(
@@ -236,8 +253,11 @@ def twofa_enable(
     if not verify_totp(user.totp_secret, payload.code):
         raise HTTPException(status_code=400, detail="Невірний код підтвердження")
     user.totp_enabled = True
+    # Генеруємо backup-коди — повертаємо ОДИН раз (зберігаємо лише хеші)
+    codes = generate_backup_codes()
+    user.backup_codes = hash_backup_codes(codes)
     db.commit()
-    return {"ok": True, "totp_enabled": True}
+    return {"ok": True, "totp_enabled": True, "backup_codes": codes}
 
 
 @app.post("/auth/2fa/disable", tags=["auth"])
@@ -246,12 +266,33 @@ def twofa_disable(
     db: Session = Depends(get_db),
     user: models.User = Depends(require_role(*models.ROLES)),
 ) -> dict:
-    if user.totp_enabled and not verify_totp(user.totp_secret or "", payload.code):
+    if user.totp_enabled and not (
+        verify_totp(user.totp_secret or "", payload.code)
+        or consume_backup_code(user, payload.code, db)
+    ):
         raise HTTPException(status_code=400, detail="Невірний код підтвердження")
     user.totp_enabled = False
     user.totp_secret = None
+    user.backup_codes = None
     db.commit()
     return {"ok": True, "totp_enabled": False}
+
+
+@app.post("/auth/2fa/backup-codes", tags=["auth"])
+def twofa_regenerate_backup(
+    payload: schemas.TwoFACode,
+    db: Session = Depends(get_db),
+    user: models.User = Depends(require_role(*models.ROLES)),
+) -> dict:
+    """Перегенерувати backup-коди (старі стають недійсними). Потрібен актуальний TOTP-код."""
+    if not user.totp_enabled:
+        raise HTTPException(status_code=400, detail="2FA не увімкнено")
+    if not verify_totp(user.totp_secret or "", payload.code):
+        raise HTTPException(status_code=400, detail="Невірний код підтвердження")
+    codes = generate_backup_codes()
+    user.backup_codes = hash_backup_codes(codes)
+    db.commit()
+    return {"backup_codes": codes}
 
 
 # ─────────────  Користувачі (тільки super_admin)  ─────────────

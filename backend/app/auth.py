@@ -1,5 +1,7 @@
 """Автентифікація: bcrypt-паролі, JWT-токени, TOTP-2FA та залежності ролей."""
 import io
+import json
+import secrets
 from datetime import datetime, timedelta, timezone
 
 import bcrypt
@@ -71,6 +73,32 @@ def qr_svg(uri: str) -> str:
     buf = io.BytesIO()
     img.save(buf)
     return buf.getvalue().decode()
+
+
+# ── Backup-коди 2FA (одноразові) ──
+def generate_backup_codes(n: int = 8) -> list[str]:
+    """Список кодів виду 'a1b2-c3d4' (відображаються користувачу один раз)."""
+    return [f"{secrets.token_hex(2)}-{secrets.token_hex(2)}" for _ in range(n)]
+
+
+def hash_backup_codes(codes: list[str]) -> str:
+    return json.dumps([hash_password(c) for c in codes])
+
+
+def consume_backup_code(user: "models.User", code: str, db: Session) -> bool:
+    """Перевіряє код серед хешів; при збігу — видаляє його (одноразовість)."""
+    try:
+        hashes = json.loads(user.backup_codes or "[]")
+    except ValueError:
+        return False
+    norm = code.strip().lower()
+    for i, h in enumerate(hashes):
+        if verify_password(norm, h):
+            hashes.pop(i)
+            user.backup_codes = json.dumps(hashes)
+            db.commit()
+            return True
+    return False
 
 
 # ── Залежності ──

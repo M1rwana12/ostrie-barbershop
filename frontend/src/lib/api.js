@@ -91,6 +91,8 @@ export const twofaEnable = (code) =>
   auth('/auth/2fa/enable', { method: 'POST', body: JSON.stringify({ code }) })
 export const twofaDisable = (code) =>
   auth('/auth/2fa/disable', { method: 'POST', body: JSON.stringify({ code }) })
+export const twofaRegenBackup = (code) =>
+  auth('/auth/2fa/backup-codes', { method: 'POST', body: JSON.stringify({ code }) })
 
 // ── Адмін: записи ──
 export const getAppointments = () => auth('/appointments')
