@@ -853,3 +853,45 @@ section { position: relative; }
   .only-desktop { display: none; }
   .top-title { font-size: 1.15rem; }
 }
+
+/* ════════════════  Tier B — сигнатурні фішки лендингу  ════════════════ */
+
+/* 1) Blade-wipe: заголовки секцій «врізаються» лезом, що сяє брасом */
+@media (prefers-reduced-motion: no-preference) {
+  .sec-head .display.in, .booking-aside .display.in { animation: bladeCut 0.7s var(--ease) both; }
+  .sec-head .display, .booking-aside .display { position: relative; }
+  .sec-head .display.in::after, .booking-aside .display.in::after {
+    content: ''; position: absolute; top: -8%; bottom: -8%; width: 2px;
+    background: var(--accent-hi); box-shadow: 0 0 18px 2px var(--accent);
+    pointer-events: none; animation: bladeSweep 0.7s var(--ease) forwards;
+  }
+}
+@keyframes bladeCut { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes bladeSweep { 0% { left: 0; opacity: 0; } 18% { opacity: 1; } 100% { left: 100%; opacity: 0; } }
+
+/* 2) «Звук закладу» — Spotify */
+.sound { margin-top: clamp(2.5rem, 6vw, 4.5rem); display: grid; grid-template-columns: 1fr 1.3fr; gap: clamp(1.5rem, 4vw, 3rem); align-items: center; }
+.sound-head h3 { font-family: var(--f-display); font-size: clamp(1.8rem, 4vw, 2.8rem); margin: 0.6rem 0 0.8rem; text-transform: uppercase; letter-spacing: 0.02em; }
+.sound-head p { color: var(--ink-dim); max-width: 40ch; }
+.sound-embed { width: 100%; height: 352px; border: 1px solid var(--line); border-radius: 14px; }
+@media (max-width: 760px) { .sound { grid-template-columns: 1fr; } .sound-embed { height: 232px; } }
+
+/* 3) «Завантаженість сьогодні» — жива шкала по годинах */
+.today-load { margin-top: 2rem; border-top: 1px solid var(--line); padding-top: 1.4rem; }
+.tl-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-bottom: 0.9rem; flex-wrap: wrap; }
+.tl-left { font-size: 0.82rem; color: var(--accent-hi); font-weight: 600; }
+.tl-grid { display: grid; grid-template-columns: repeat(11, 1fr); gap: 4px; }
+.tl-cell { aspect-ratio: 1 / 1.4; border-radius: 5px; display: flex; align-items: flex-end; justify-content: center;
+  padding-bottom: 3px; font-size: 0.6rem; color: var(--ink-dim); border: 1px solid var(--line);
+  background: var(--bg-3); transition: transform 0.2s var(--ease); }
+.tl-cell:hover { transform: translateY(-2px); }
+.tl-cell.free { background: color-mix(in srgb, var(--ok) 26%, var(--bg-3)); border-color: color-mix(in srgb, var(--ok) 50%, transparent); color: var(--ink); }
+.tl-cell.busy { background: color-mix(in srgb, var(--accent) 30%, var(--bg-3)); border-color: color-mix(in srgb, var(--accent) 55%, transparent); color: var(--ink); }
+.tl-cell.full { background: color-mix(in srgb, var(--danger) 26%, var(--bg-3)); border-color: color-mix(in srgb, var(--danger) 50%, transparent); }
+.tl-legend { display: flex; gap: 1.1rem; margin-top: 0.8rem; font-size: 0.74rem; color: var(--ink-dim); }
+.tl-legend span { display: inline-flex; align-items: center; gap: 0.4rem; }
+.tl-legend i { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
+.tl-legend i.free { background: color-mix(in srgb, var(--ok) 55%, var(--bg-3)); }
+.tl-legend i.busy { background: color-mix(in srgb, var(--accent) 60%, var(--bg-3)); }
+.tl-legend i.full { background: color-mix(in srgb, var(--danger) 55%, var(--bg-3)); }
+@media (max-width: 420px) { .tl-cell .tl-h { display: none; } }

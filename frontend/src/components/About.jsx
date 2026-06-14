@@ -47,6 +47,22 @@ export default function About() {
           </div>
         </div>
 
+        <div className="sound" data-reveal data-delay="1">
+          <div className="sound-head">
+            <span className="kicker">{t('about.soundKicker')}</span>
+            <h3>{t('about.soundTitle')}</h3>
+            <p>{t('about.soundNote')}</p>
+          </div>
+          <iframe
+            className="sound-embed"
+            title={t('about.soundTitle')}
+            src="https://open.spotify.com/embed/playlist/37i9dQZF1DWXRqgorJj26U?theme=0"
+            loading="lazy"
+            allow="encrypted-media; clipboard-write"
+            allowFullScreen
+          />
+        </div>
+
         <div className="stats" data-reveal>
           {stats.map(([n, l]) => (
             <div className="stat" key={l}>

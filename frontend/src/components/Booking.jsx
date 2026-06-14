@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createAppointment, getAvailability } from '../lib/api'
 import { useI18n } from '../lib/i18n'
+import TodayLoad from './TodayLoad'
 
 const TIMES = ['10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00']
 const todayISO = () => new Date().toISOString().split('T')[0]
@@ -185,6 +186,8 @@ export default function Booking({ services, barbers }) {
                 <span><span className="lbl">{t('booking.cSchedule')}</span>{t('booking.cScheduleVal')}</span>
               </div>
             </div>
+
+            <TodayLoad barbers={barbers} />
           </div>
 
           <div data-reveal data-delay="1">

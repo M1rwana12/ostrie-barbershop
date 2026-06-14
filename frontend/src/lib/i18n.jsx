@@ -45,6 +45,8 @@ const dict = {
       kicker: '04 — Маніфест', title: ['Не салон.', 'Майстерня', 'характеру.'],
       manifesto: 'OSTRIE — це місце, де чоловік виходить іншим, ніж зайшов. Ми не женемося за трендами заради трендів. Ми працюємо лезом, як скульптор різцем: точно, впевнено, без зайвого. Тут немає метушні — є ритуал. Гаряча кава, важка музика, тверда рука майстра і дзеркало, у яке хочеться дивитись.',
       signName: 'Артем Гострий', signRole: 'Засновник OSTRIE',
+      soundKicker: 'Атмосфера', soundTitle: 'Звук закладу',
+      soundNote: 'Те, що грає в залі, поки майстер працює лезом. Увімкни — і відчуй ритм OSTRIE.',
       features: [
         { title: 'Тільки преміум-косметика', text: 'Працюємо на професійних брендах догляду. Жодних компромісів зі складом.' },
         { title: 'Стерильність інструменту', text: 'Кожен інструмент проходить сухожарову стерилізацію. Безпека — без винятків.' },
@@ -82,6 +84,8 @@ const dict = {
       errService: 'Оберіть послугу', errDate: 'Оберіть дату', errDateFuture: 'Оберіть майбутню дату', errTime: 'Оберіть час',
       errSend: 'Не вдалося надіслати запис: {msg}. Спробуйте ще раз або зателефонуйте нам.',
       unitH: 'год', unitMin: 'хв',
+      loadTitle: 'Завантаженість сьогодні',
+      loadLeft: 'вільно ще {n} слот(ів)', loadFree: 'вільно', loadBusy: 'мало', loadFull: 'немає',
     },
     footer: {
       mapTitle: 'Мапа розташування барбершопу OSTRIE',
@@ -187,6 +191,8 @@ const dict = {
       kicker: '04 — Manifesto', title: ['Not a salon.', 'A workshop', 'of character.'],
       manifesto: 'OSTRIE is a place where a man leaves different from how he walked in. We do not chase trends for the sake of trends. We work with the blade like a sculptor with a chisel: precise, confident, nothing excess. No fuss here — only ritual. Hot coffee, heavy music, a steady hand and a mirror you want to look into.',
       signName: 'Artem Hostry', signRole: 'Founder of OSTRIE',
+      soundKicker: 'Atmosphere', soundTitle: 'The sound of the shop',
+      soundNote: 'What plays in the room while the blade does its work. Hit play and feel the OSTRIE rhythm.',
       features: [
         { title: 'Premium products only', text: 'We work with professional grooming brands. No compromise on ingredients.' },
         { title: 'Sterile tools', text: 'Every tool goes through dry-heat sterilization. Safety — without exceptions.' },
@@ -224,6 +230,8 @@ const dict = {
       errService: 'Choose a service', errDate: 'Choose a date', errDateFuture: 'Choose a future date', errTime: 'Choose a time',
       errSend: 'Could not send the booking: {msg}. Please try again or give us a call.',
       unitH: 'h', unitMin: 'min',
+      loadTitle: 'Today’s availability',
+      loadLeft: '{n} slot(s) still free', loadFree: 'free', loadBusy: 'few', loadFull: 'full',
     },
     footer: {
       mapTitle: 'Map of OSTRIE barbershop location',
