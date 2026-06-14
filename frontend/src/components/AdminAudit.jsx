@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { getAudit } from '../lib/api'
 import { useI18n } from '../lib/i18n'
+import { SkelTable } from './Skeleton'
 
 const ACTIONS = [
   'login_success', 'login_failed', 'login_ratelimited', 'password_changed',
@@ -66,7 +67,9 @@ export default function AdminAudit({ onUnauthorized }) {
 
       {error && <div className="form-error-top" role="alert">{error}</div>}
 
-      {rows.length === 0 && !loading ? (
+      {loading ? (
+        <SkelTable rows={6} cols={6} />
+      ) : rows.length === 0 ? (
         <p className="admin-empty">{t('admin.empty')}</p>
       ) : (
         <div className="admin-table-wrap">

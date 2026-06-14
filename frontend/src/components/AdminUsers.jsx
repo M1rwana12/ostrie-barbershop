@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react'
 import { getUsers, createUser, deleteUser } from '../lib/api'
 import { useI18n } from '../lib/i18n'
+import { useToast } from '../lib/toast'
+import { SkelTable } from './Skeleton'
 
 const ROLES = ['admin', 'barber', 'super_admin']
 
 export default function AdminUsers({ currentEmail, onUnauthorized }) {
   const { t } = useI18n()
+  const toast = useToast()
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -40,10 +43,12 @@ export default function AdminUsers({ currentEmail, onUnauthorized }) {
     try {
       await createUser({ email: email.trim().toLowerCase(), password, role })
       setEmail(''); setPassword(''); setRole('barber')
+      toast.success(t('admin.toastUserCreated'))
       await load()
     } catch (err) {
       if (err.status === 401) return onUnauthorized()
       setError(err.message)
+      toast.error(err.message)
     } finally {
       setBusy(false)
     }
@@ -53,10 +58,11 @@ export default function AdminUsers({ currentEmail, onUnauthorized }) {
     if (!window.confirm(t('admin.confirmDelete', { email: u.email }))) return
     try {
       await deleteUser(u.id)
+      toast.success(t('admin.toastUserDeleted'))
       await load()
     } catch (err) {
       if (err.status === 401) return onUnauthorized()
-      setError(err.message)
+      toast.error(err.message)
     }
   }
 
@@ -114,7 +120,7 @@ export default function AdminUsers({ currentEmail, onUnauthorized }) {
           </table>
         </div>
       )}
-      {loading && <p className="admin-empty">…</p>}
+      {loading && <SkelTable rows={3} cols={4} />}
     </>
   )
 }

@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { getAppointments, getServices, getBarbers, updateAppointmentStatus } from '../lib/api'
 import { useI18n } from '../lib/i18n'
+import { useToast } from '../lib/toast'
+import { SkelTable } from './Skeleton'
+import { IcoRefresh, IcoSearch } from './icons'
 
 const STATUSES = ['new', 'done', 'cancelled']
 
@@ -15,11 +18,14 @@ const fmtCreated = (iso, locale) => {
 
 export default function AdminBookings({ canEdit, onUnauthorized }) {
   const { t } = useI18n()
+  const toast = useToast()
   const [items, setItems] = useState([])
   const [services, setServices] = useState([])
   const [barbers, setBarbers] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [q, setQ] = useState('')
+  const [filter, setFilter] = useState('') // '' | new | done | cancelled
 
   const svcName = useMemo(() => Object.fromEntries(services.map((s) => [s.id, s.name])), [services])
   const barbName = useMemo(() => Object.fromEntries(barbers.map((b) => [b.id, b.name])), [barbers])
@@ -50,28 +56,53 @@ export default function AdminBookings({ canEdit, onUnauthorized }) {
     setItems((list) => list.map((a) => (a.id === id ? { ...a, status } : a)))
     try {
       await updateAppointmentStatus(id, status)
+      toast.success(t('admin.toastStatus'))
     } catch (err) {
       if (err.status === 401) return onUnauthorized()
       setItems(prev) // відкат при помилці
-      setError(t('admin.errLoad', { msg: err.message }))
+      toast.error(err.message)
     }
   }
 
+  const shown = useMemo(() => {
+    const needle = q.trim().toLowerCase()
+    return items.filter((a) => {
+      if (filter && a.status !== filter) return false
+      if (!needle) return true
+      return (
+        a.name.toLowerCase().includes(needle) ||
+        a.phone.toLowerCase().includes(needle) ||
+        (svcName[a.service_id] || '').toLowerCase().includes(needle)
+      )
+    })
+  }, [items, q, filter, svcName])
+
+  const CHIPS = ['', 'new', 'done', 'cancelled']
+
   return (
     <>
-      <div className="admin-head">
-        <span className="kicker">{t('admin.panel')}</span>
-        <h1 className="display">{t('admin.title')} <small className="admin-count">{items.length}</small></h1>
-      </div>
       <div className="admin-toolbar">
-        <button type="button" className="btn btn--ghost" onClick={load} disabled={loading}>
-          {loading ? t('admin.refreshing') : t('admin.refresh')}
+        <div className="search-box">
+          <IcoSearch />
+          <input type="search" placeholder={t('admin.searchPh')} value={q} onChange={(e) => setQ(e.target.value)} />
+        </div>
+        <div className="chips">
+          {CHIPS.map((c) => (
+            <button key={c || 'all'} className={`chip${filter === c ? ' active' : ''}`} onClick={() => setFilter(c)}>
+              {c ? statusLabel(c) : t('admin.auAll')}
+            </button>
+          ))}
+        </div>
+        <button type="button" className="btn btn--ghost icon-btn-text" onClick={load} disabled={loading}>
+          <IcoRefresh /> {loading ? t('admin.refreshing') : t('admin.refresh')}
         </button>
       </div>
 
       {error && <div className="form-error-top" role="alert">{error}</div>}
 
-      {items.length === 0 && !loading ? (
+      {loading ? (
+        <SkelTable rows={6} cols={8} />
+      ) : shown.length === 0 ? (
         <p className="admin-empty">{t('admin.empty')}</p>
       ) : (
         <div className="admin-table-wrap">
@@ -89,7 +120,7 @@ export default function AdminBookings({ canEdit, onUnauthorized }) {
               </tr>
             </thead>
             <tbody>
-              {items.map((a) => (
+              {shown.map((a) => (
                 <tr key={a.id} className={`st-${a.status}`}>
                   <td data-label="#">{a.id}</td>
                   <td className="nowrap" data-label={t('admin.colDate')}><b>{a.date}</b> · {a.time}</td>

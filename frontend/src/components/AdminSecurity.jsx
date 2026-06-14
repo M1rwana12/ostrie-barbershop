@@ -3,6 +3,7 @@ import {
   getMe, changePassword, twofaSetup, twofaEnable, twofaDisable, twofaRegenBackup,
 } from '../lib/api'
 import { useI18n } from '../lib/i18n'
+import { useToast } from '../lib/toast'
 
 function BackupCodes({ codes }) {
   const { t } = useI18n()
@@ -30,6 +31,7 @@ function BackupCodes({ codes }) {
 
 export default function AdminSecurity({ onUnauthorized }) {
   const { t } = useI18n()
+  const toast = useToast()
 
   // зміна пароля
   const [cur, setCur] = useState('')
@@ -67,7 +69,7 @@ export default function AdminSecurity({ onUnauthorized }) {
     setPwdMsg(''); setPwdErr(''); setPwdBusy(true)
     try {
       await changePassword(cur, next)
-      setCur(''); setNext(''); setPwdMsg(t('admin.pwdChanged'))
+      setCur(''); setNext(''); setPwdMsg(t('admin.pwdChanged')); toast.success(t('admin.pwdChanged'))
     } catch (err) {
       if (guard(err)) return
       setPwdErr(err.message)
@@ -89,7 +91,7 @@ export default function AdminSecurity({ onUnauthorized }) {
     setTwoErr(''); setTwoBusy(true)
     try {
       const res = await twofaEnable(code)
-      setEnabled(true); setSetup(null); setCode(''); setTwoMsg(t('admin.twofaOn'))
+      setEnabled(true); setSetup(null); setCode(''); setTwoMsg(t('admin.twofaOn')); toast.success(t('admin.twofaOn'))
       setFreshCodes(res.backup_codes || null)
       await refreshMe()
     } catch (err) {
@@ -103,7 +105,7 @@ export default function AdminSecurity({ onUnauthorized }) {
     setTwoErr(''); setTwoBusy(true)
     try {
       await twofaDisable(code)
-      setEnabled(false); setDisabling(false); setCode(''); setFreshCodes(null); setTwoMsg(t('admin.twofaOff'))
+      setEnabled(false); setDisabling(false); setCode(''); setFreshCodes(null); setTwoMsg(t('admin.twofaOff')); toast.success(t('admin.twofaOff'))
       await refreshMe()
     } catch (err) {
       if (guard(err)) return

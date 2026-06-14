@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import { getAnalytics } from '../lib/api'
 import { useI18n } from '../lib/i18n'
+import { fmtMoney, fmtNum } from '../lib/format'
+import { SkelCards } from './Skeleton'
 
-function BarList({ rows, currency }) {
+function BarList({ rows, currency, lang }) {
   const max = Math.max(1, ...rows.map((r) => r.revenue))
   return (
     <div className="an-bars">
@@ -12,7 +14,7 @@ function BarList({ rows, currency }) {
           <span className="an-bar-track">
             <span className="an-bar-fill" style={{ width: `${(r.revenue / max) * 100}%` }} />
           </span>
-          <span className="an-bar-val">{r.revenue} {currency} · {r.count}</span>
+          <span className="an-bar-val">{fmtMoney(r.revenue, lang, currency)} · {r.count}</span>
         </div>
       ))}
     </div>
@@ -20,7 +22,7 @@ function BarList({ rows, currency }) {
 }
 
 export default function AdminAnalytics({ onUnauthorized }) {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
   const [data, setData] = useState(null)
@@ -72,32 +74,34 @@ export default function AdminAnalytics({ onUnauthorized }) {
 
       {error && <div className="form-error-top" role="alert">{error}</div>}
 
-      {data && (
+      {loading && <SkelCards count={6} />}
+
+      {data && !loading && (
         <>
           <div className="an-cards">
             <div className="an-card accent">
               <div className="an-k">{t('admin.mRevenue')}</div>
-              <div className="an-v">{data.revenue}<small> {cur}</small></div>
+              <div className="an-v">{fmtNum(data.revenue, lang)}<small> {cur}</small></div>
             </div>
             <div className="an-card">
               <div className="an-k">{t('admin.mAvg')}</div>
-              <div className="an-v">{data.avg_check}<small> {cur}</small></div>
+              <div className="an-v">{fmtNum(data.avg_check, lang)}<small> {cur}</small></div>
             </div>
             <div className="an-card">
               <div className="an-k">{t('admin.mDone')}</div>
-              <div className="an-v">{c.done || 0}</div>
+              <div className="an-v">{fmtNum(c.done || 0, lang)}</div>
             </div>
             <div className="an-card">
               <div className="an-k">{t('admin.mNew')}</div>
-              <div className="an-v">{c.new || 0}</div>
+              <div className="an-v">{fmtNum(c.new || 0, lang)}</div>
             </div>
             <div className="an-card">
               <div className="an-k">{t('admin.mCancelled')}</div>
-              <div className="an-v">{c.cancelled || 0}</div>
+              <div className="an-v">{fmtNum(c.cancelled || 0, lang)}</div>
             </div>
             <div className="an-card">
               <div className="an-k">{t('admin.mTotal')}</div>
-              <div className="an-v">{c.total || 0}</div>
+              <div className="an-v">{fmtNum(c.total || 0, lang)}</div>
             </div>
           </div>
 
@@ -107,15 +111,15 @@ export default function AdminAnalytics({ onUnauthorized }) {
             <div className="an-sections">
               <section>
                 <h3 className="an-h">{t('admin.byService')}</h3>
-                <BarList rows={data.by_service} currency={cur} />
+                <BarList rows={data.by_service} currency={cur} lang={lang} />
               </section>
               <section>
                 <h3 className="an-h">{t('admin.byBarber')}</h3>
-                <BarList rows={data.by_barber} currency={cur} />
+                <BarList rows={data.by_barber} currency={cur} lang={lang} />
               </section>
               <section>
                 <h3 className="an-h">{t('admin.byDay')}</h3>
-                <BarList rows={data.by_day} currency={cur} />
+                <BarList rows={data.by_day} currency={cur} lang={lang} />
               </section>
             </div>
           )}
