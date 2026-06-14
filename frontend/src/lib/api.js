@@ -12,9 +12,13 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
  * запит після простою може повернути 404/5xx, поки інстанс прокидається. POST не
  * ретраїмо, щоб не створити дубль запису.
  */
+// Ідемпотентні методи можна безпечно повторювати при холодному старті Render.
+// POST НЕ ретраїмо, щоб не створити дубль запису.
+const IDEMPOTENT = new Set(['GET', 'PATCH', 'PUT', 'DELETE'])
+
 async function request(path, options = {}, attempt = 0) {
-  const method = options.method || 'GET'
-  const canRetry = method === 'GET' && attempt < 4
+  const method = (options.method || 'GET').toUpperCase()
+  const canRetry = IDEMPOTENT.has(method) && attempt < 4
 
   let res
   try {
@@ -23,7 +27,7 @@ async function request(path, options = {}, attempt = 0) {
       ...options,
     })
   } catch (networkErr) {
-    // мережева помилка (інстанс ще прокидається) — ретраїмо GET
+    // мережева помилка (інстанс ще прокидається) — ретраїмо ідемпотентні
     if (canRetry) {
       await sleep(2500)
       return request(path, options, attempt + 1)
