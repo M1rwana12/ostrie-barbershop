@@ -22,9 +22,11 @@ async function request(path, options = {}, attempt = 0) {
 
   let res
   try {
+    const { headers: optHeaders, ...rest } = options
     res = await fetch(`${BASE}${path}`, {
-      headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
-      ...options,
+      ...rest,
+      // headers — ПІСЛЯ ...rest, інакше options.headers затирає Content-Type
+      headers: { 'Content-Type': 'application/json', ...(optHeaders || {}) },
     })
   } catch (networkErr) {
     // мережева помилка (інстанс ще прокидається) — ретраїмо ідемпотентні
